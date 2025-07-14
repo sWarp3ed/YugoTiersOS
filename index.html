@@ -215,8 +215,11 @@
 
         function filterPlayers() {
       const query = document.getElementById('search-bar').value.toLowerCase();
-      const filteredPlayers = topPlayers.filter(player => player.name.toLowerCase().includes(query));
-      renderPlayers(filteredPlayers);
+      const filteredPlayers = players
+  .filter(player => player.name.toLowerCase().includes(searchQuery))
+  .slice(0, 6); // Limit to 6 players
+
+renderPlayers(filteredPlayers);
     }
       
         // Fetch player data and handle sorting, storing top 10

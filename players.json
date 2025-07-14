@@ -1,0 +1,16 @@
+[
+    {
+      "name": "Fowxt",
+      "tiers": [
+        { "tier": "RHT1", "kit": "SMP", "peakTier": "HT1" },
+        { "tier": "HT1", "kit": "UHC" },
+        { "tier": "LT2", "kit": "SWORD"},
+        { "tier": "HT3", "kit": "DIASMP" },
+        { "tier": "LT2", "kit": "AXE" },
+        { "tier": "HT3", "kit": "MACE" },
+        { "tier": "HT2", "kit": "NETHPOT" },
+        { "tier": "LT1", "kit": "DIAMONDPOT" },
+        { "tier": "HT3", "kit": "CRYSTALS"}
+      ]
+    }
+]

@@ -85,10 +85,6 @@
         font-size: 14px;
         color: #ccc;
       }
-
-      .first-place:hover {
-        color:red
-      }
   
       .right-side {
         display: flex;
@@ -302,38 +298,6 @@
                 let rightSide = document.createElement('div');
                 rightSide.classList.add('right-side');
       
-                player.tiers.forEach(tier => {
-                  const kit = tier.kit;
-                  if (kitsUsed.has(kit)) return;
-                  kitsUsed.add(kit);
-      
-                  let tierDiv = document.createElement('div');
-                  tierDiv.classList.add('tier', tier.tier);  // Add tier class dynamically
-      
-                  let tooltip = document.createElement('div');
-                  tooltip.classList.add('tooltip');
-      
-                  const current = tier.tier;
-                  const peak = tier.peakTier;
-                  const usedTier = peak || current;
-                  const points = tierPoints[usedTier] || 0;
-                  totalPoints += points;
-      
-                  tooltip.textContent = `${peak ? "Peak Tier" : "Current Tier"}: ${usedTier} — ${points} bodova`;
-                  tierDiv.appendChild(tooltip);
-      
-                  // Use the icon URL based on the kit
-                  let icon = document.createElement('img');
-                  icon.src = iconURLs[kit] || ''; // Fallback to empty string if kit not found
-                  icon.alt = `${kit} icon`; // Set alt text based on kit
-                  tierDiv.appendChild(icon);
-      
-                  let tierText = document.createElement('span');
-                  tierText.textContent = current;
-                  tierDiv.appendChild(tierText);
-      
-                  rightSide.appendChild(tierDiv);
-                });
       
                 let playerInfo = document.createElement('div');
                 playerInfo.classList.add('info');

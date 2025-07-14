@@ -56,6 +56,127 @@
           transition: transform 0.3s ease, background-color 0.3s ease, border 0.3s ease;
         }
 
+        .left-side {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: left;
+        width: 40%;
+      }
+  
+      .left-side h2 {
+        font-size: 20px;
+        margin: 0 0 5px 0;
+      }
+  
+      .first-place { color: gold; }
+      .second-place { color: rgb(255, 255, 255); }
+      .third-place { color: #cd7f32; }
+      .other-players { color: #8b8b8b; }
+  
+      .info {
+        font-size: 14px;
+        color: #ccc;
+      }
+
+      .first-place:hover {
+        color:red
+      }
+  
+      .right-side {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        width: 80%;
+        gap: 10px;
+      }
+  
+      .tier {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        width: 60px;
+        font-size: 12px;
+      }
+  
+      .tier img {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 5px;
+      }
+  
+      .tier span {
+        font-weight: bold;
+      }
+  
+      .HT1 { color: red; }
+      .LT1 { color: rgb(255, 136, 0); }
+      .HT2 { color: rgb(255, 217, 0); }
+      .LT2 { color: rgb(123, 255, 0); }
+      .HT3 { color: rgb(0, 255, 98); }
+      .LT3 { color: rgb(0, 255, 213); }
+      .HT4 { color: rgb(0, 68, 255); }
+      .LT4 { color: rgb(89, 0, 255); }
+      .HT5 { color: rgb(225, 0, 255); }
+      .LT5 { color: rgb(114, 0, 76); }
+      .RLT2 {color: rgb(168, 168, 168); }
+      .RLT1 {color: rgb(168, 168, 168); }
+  
+      .retired {
+        color: rgb(168, 168, 168);
+        font-weight: bold;
+      }
+  
+      .RHT1, .RHT2, .RLT1 {
+        color: rgb(168, 168, 168);
+        font-weight: bold;
+      }
+  
+      .custom-button {
+        background-color: #ffffff;
+        color: #4c3e30;
+        border: none;
+        padding: 20px 40px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+  
+      .custom-button:hover {
+        background-color: #7e7e7e;
+      }
+  
+      .tooltip {
+        display: none;
+        position: absolute;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #242424;
+        color: white;
+        padding: 5px 8px;
+        font-size: 20px;
+        border-radius: 25px;
+        white-space: nowrap;
+        z-index: 10;
+        font-weight: bold;
+      }
+  
+      .tier:hover .tooltip {
+        display: block;
+      }
+  
+      .player:hover {
+        transform: translateX(-15px);
+        background-color: #ffbb33;
+        border: 4px solid rgb(255, 255, 255);
+        cursor: pointer;
+      }
+
 
             </style>
             <body>

@@ -29,9 +29,39 @@
         }
 
 
+        #player-list {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          max-width: 1000px;
+          margin: 0 auto;
+          margin-top: 20px;
+        }
+    
+        .player-link {
+          text-decoration: none;
+        }
+    
+        .player {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          background-color: #1e1e1e;
+          padding: 15px 20px;
+          border-radius: 10px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+          height: 100px;
+          box-sizing: border-box;
+          align-items: center;
+          transition: transform 0.3s ease, background-color 0.3s ease, border 0.3s ease;
+        }
+
+
             </style>
             <body>
                 <input type="text" id="search-bar" placeholder="Pretraži igrače..." oninput="filterPlayers()">
+                <div id="player-list"></div>
+      
             </body>
     </head>
 </html>

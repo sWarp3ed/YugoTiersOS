@@ -298,20 +298,7 @@
                 let rightSide = document.createElement('div');
                 rightSide.classList.add('right-side');
       
-      
-                let playerInfo = document.createElement('div');
-                playerInfo.classList.add('info');
-                playerInfo.innerHTML = `Mjesto: #${player.placement || 'N/A'}<br>Bodovi: ${totalPoints}`;
-                leftSide.appendChild(playerInfo);
-      
-                playerBox.appendChild(leftSide);
-                playerBox.appendChild(rightSide);
-                playerDiv.appendChild(playerBox);
-      
-                playerDiv.href = `/player/${player.name.toLowerCase().replace(/\s+/g, '-')}`;
-                playerList.appendChild(playerDiv);
-              });
-            };
+            });
       
             // Initially render the top 10 players
             renderPlayers(topPlayers);

@@ -37,7 +37,7 @@
           display: flex;
           flex-direction: column;
           gap: 15px;
-          width: 250px;
+          width: 300px;
           margin: 0 auto;
           margin-top: 20px;
           position:absolute;
@@ -267,15 +267,6 @@
                 let playerName = document.createElement('h2');
                 if (player.name === "sWarped") {
                 playerName.style.color = "magenta"; // Set color to purple for "sWarped"
-                } else if (player.placement === 1) {
-                playerName.classList.add('first-place');
-                } else if (player.placement === 2) {
-                playerName.classList.add('second-place');
-                } else if (player.placement === 3) {
-                playerName.classList.add('third-place');
-                } else {
-                playerName.classList.add('other-players');
-                };
       
                 playerName.textContent = player.name;
                 leftSide.appendChild(playerName);

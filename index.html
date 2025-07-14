@@ -194,12 +194,25 @@
 
       }
 
+      .removeplayer-button {
+
+        position: absolute;
+        bottom: 80px;
+        left: 100px;
+        background-color: rgb(255, 0, 0);
+        border-radius: 10px;
+        height: 65px;
+        width: 65px;
+      }
+
 
             </style>
             <body>
                 <input type="text" id="search-bar" placeholder="Pretraži igrače..." oninput="filterPlayers()">
                 <div id="player-list"></div>
                 <a href=""><img src="addplayer.webp" class="addplayer-button"></a>
+                <a href=""><img src="removeplayer.webp" class="removeplayer-button"></a>
+                
       
             </body>
             <script>

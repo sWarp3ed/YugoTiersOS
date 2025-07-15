@@ -286,17 +286,61 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
 
+<!-- Replace your existing fetchPlayers() with this Firebase version -->
 <script>
+  // Initialize Firebase (use your actual config)
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
     projectId: "YOUR_PROJECT_ID",
-    // etc...
+    // ...other config
   };
 
-  // Initialize Firebase
-  const app = firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+
+  // Fetch all players from Firestore
+  async function fetchPlayers() {
+    try {
+      const snapshot = await db.collection('players').get();
+      const players = [];
+      snapshot.forEach(doc => {
+        // Firestore stores the data, doc.id is the document id (if needed)
+        players.push(doc.data());
+      });
+      return players;
+    } catch (error) {
+      console.error('Error fetching players:', error);
+      return [];
+    }
+  }
+
+  // Add new player to Firestore
+  async function addPlayer(name) {
+    if (!name) return alert('Player name cannot be empty.');
+
+    const players = await fetchPlayers();
+    if (players.some(p => p.name === name)) {
+      alert('Player already exists!');
+      return;
+    }
+
+    const newPlayer = {
+      name: name,
+      tiers: [
+        { tier: "HT1", peakTier: "HT1" } // default tier example
+      ]
+    };
+
+    try {
+      await db.collection('players').add(newPlayer);
+      hideAddPlayerModal();
+      renderPlayers(searchBar.value);
+    } catch (error) {
+      console.error('Error adding player:', error);
+      alert('Failed to add player.');
+    }
+  }
 </script>
 
   <script>

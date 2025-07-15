@@ -371,22 +371,30 @@
   });
 
   doneButton.addEventListener('click', async () => {
-    const name = playerNameInput.value.trim();
-    if (!name) return;
+  const name = playerNameInput.value.trim();
+  if (!name) return;
 
-    const newPlayer = {
-      name,
-      tiers: [{ tier: "HT5", peakTier: null }]
-    };
+  const newPlayer = {
+    name: name,
+    tiers: [{ tier: "HT5", peakTier: null }],
+  };
 
-    const { error } = await supabase.from('players').insert(newPlayer);
-    if (error) {
-      console.error('Error adding player:', error);
-    } else {
-      modal.style.display = 'none';
-      fetchPlayers(); // refresh the list
-    }
-  });
+  const { data, error } = await supabase
+    .from('players')
+    .insert([newPlayer]);
+
+  if (error) {
+    console.error('Error adding player to Supabase:', error);
+  } else {
+    console.log('Player added:', data);
+    modal.style.display = 'none';
+
+    // Add to allPlayers and re-render
+    allPlayers.unshift(newPlayer);
+    topPlayers = allPlayers.slice(0, 6);
+    renderPlayers(topPlayers);
+  }
+});
 
   // Search bar
   const searchBar = document.getElementById('search-bar');

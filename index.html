@@ -287,7 +287,9 @@
   // Initialize Supabase
   const SUPABASE_URL = 'https://wcjkvjpmivlrncilypec.supabase.co'; // your Supabase URL
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjamt2anBtaXZscm5jaWx5cGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0ODMwNDQsImV4cCI6MjA2ODA1OTA0NH0.S1Ewd2qBRogG-bUGHKlAmD-UB8ayH5__32JCwWYKD9A'; // your anon public key
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Create the Supabase client
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const tierPoints = {
     HT1: 60, LT1: 44, HT2: 28, LT2: 16,
@@ -318,7 +320,7 @@
 
   // Fetch players from Supabase and render
   async function fetchAndRenderPlayers() {
-    const { data: players, error } = await supabase
+    const { data: players, error } = await supabaseClient
       .from('players')  // just 'players', no 'public.'
       .select('*');
 
@@ -474,7 +476,7 @@
       ]
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('players')
       .insert([newPlayer]);
 

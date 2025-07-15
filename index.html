@@ -287,7 +287,7 @@
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
   const supabaseUrl = 'https://wcjkvjpmivlrncilypec.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjamt2anBtaXZscm5jaWx5cGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0ODMwNDQsImV4cCI6MjA2ODA1OTA0NH0.S1Ewd2qBRogG-bUGHKlAmD-UB8ayH5__32JCwWYKD9A'; // <-- use your full anon public key
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjamt2anBtaXZscm5jaWx5cCI6ImFub24iLCJpYXQiOjE3NTI0ODMwNDQsImV4cCI6MjA2ODA1OTA0NH0.S1Ewd2qBRogG-bUGHKlAmD-UB8ayH5__32JCwWYKD9A';
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const tierPoints = {
@@ -345,7 +345,11 @@
   }
 
   async function fetchAndRenderPlayers() {
-    const { data: players, error } = await supabase.from('players').select('*');
+    // Important fix: add { head: false } to avoid 406 error
+    const { data: players, error } = await supabase
+      .from('players')
+      .select('*', { head: false });
+
     if (error) {
       console.error('Error fetching players:', error);
       return;
@@ -408,15 +412,20 @@
       tiers: [{ tier: "HT5", peakTier: null }],
     };
 
-    const { error } = await supabase.from('players').insert([newPlayer]);
+    // Important fix: add { returning: 'minimal' } to avoid 406 error
+    const { error } = await supabase
+      .from('players')
+      .insert([newPlayer], { returning: 'minimal' });
+
     if (error) {
       console.error('Error adding player:', error);
     } else {
       console.log('Player added');
       modal.style.display = 'none';
-      await fetchAndRenderPlayers(); // refresh from DB
+      await fetchAndRenderPlayers(); // refresh list after add
     }
   });
 </script>
+
     </head>
 </html>

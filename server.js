@@ -2,10 +2,10 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3003;
 
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(__dirname));
 
 const playersFilePath = path.join(__dirname, 'players.json');
 

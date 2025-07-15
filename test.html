@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Firebase Add Player Test</title>
+  <style>
+    #modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none; 
+      justify-content: center; align-items: center;
+    }
+    #modal {
+      background: white; padding: 20px; border-radius: 5px;
+      width: 300px;
+    }
+    .player-link {
+      display: block; margin: 5px 0; text-decoration: none; color: black;
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<input id="search-bar" placeholder="Search players..." />
+<button id="addplayer-button">Add Player</button>
+
+<div id="player-list"></div>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <input id="player-name-input" placeholder="Enter player name" />
+    <button id="done-button">Add</button>
+    <button id="cancel-button">Cancel</button>
+  </div>
+</div>
+
+<script>
+  // Your Firebase config here
+  const firebaseConfig = {
+    apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
+    authDomain: "yugotiers-b297d.firebaseapp.com",
+    projectId: "yugotiers-b297d",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const searchBar = document.getElementById('search-bar');
+  const playerList = document.getElementById('player-list');
+  const addPlayerButton = document.getElementById('addplayer-button');
+  const modalOverlay = document.getElementById('modal-overlay');
+  const playerNameInput = document.getElementById('player-name-input');
+  const doneButton = document.getElementById('done-button');
+  const cancelButton = document.getElementById('cancel-button');
+
+  // Fetch and render players
+  async function fetchPlayers() {
+    try {
+      const snapshot = await db.collection('players').get();
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  }
+
+  function renderPlayers(players) {
+    playerList.innerHTML = '';
+    players.forEach(p => {
+      const a = document.createElement('a');
+      a.textContent = p.name;
+      a.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
+      a.target = '_blank';
+      a.className = 'player-link';
+      playerList.appendChild(a);
+    });
+  }
+
+  async function refreshPlayers(filter = '') {
+    let players = await fetchPlayers();
+    if(filter) {
+      players = players.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+    }
+    renderPlayers(players);
+  }
+
+  function showModal() {
+    modalOverlay.style.display = 'flex';
+    playerNameInput.value = '';
+    playerNameInput.focus();
+  }
+
+  function hideModal() {
+    modalOverlay.style.display = 'none';
+  }
+
+  async function addPlayer(name) {
+    name = name.trim();
+    if (!name) {
+      alert('Player name cannot be empty.');
+      return;
+    }
+
+    const existingPlayers = await fetchPlayers();
+    if(existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+      alert('Player already exists!');
+      return;
+    }
+
+    try {
+      await db.collection('players').add({
+        name: name,
+        tiers: [{ tier: 'HT1', peakTier: 'HT1' }]
+      });
+      hideModal();
+      refreshPlayers(searchBar.value);
+    } catch (e) {
+      console.error(e);
+      alert('Error adding player.');
+    }
+  }
+
+  searchBar.addEventListener('input', () => {
+    refreshPlayers(searchBar.value);
+  });
+
+  addPlayerButton.addEventListener('click', showModal);
+  cancelButton.addEventListener('click', hideModal);
+  doneButton.addEventListener('click', () => addPlayer(playerNameInput.value));
+  playerNameInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter') {
+      addPlayer(playerNameInput.value);
+    }
+  });
+
+  // Initial load
+  refreshPlayers();
+</script>
+
+</body>
+</html>

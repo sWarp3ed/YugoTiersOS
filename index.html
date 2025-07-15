@@ -282,253 +282,203 @@
    <script>
     console.log('Supabase loaded:', typeof supabase !== 'undefined');
   </script>
-  <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-
-<!-- Replace your existing fetchPlayers() with this Firebase version -->
-<script>
-  // Initialize Firebase (use your actual config)
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    // ...other config
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  // Fetch all players from Firestore
-  async function fetchPlayers() {
-    try {
-      const snapshot = await db.collection('players').get();
-      const players = [];
-      snapshot.forEach(doc => {
-        // Firestore stores the data, doc.id is the document id (if needed)
-        players.push(doc.data());
-      });
-      return players;
-    } catch (error) {
-      console.error('Error fetching players:', error);
-      return [];
-    }
-  }
-
-  // Add new player to Firestore
-  async function addPlayer(name) {
-    if (!name) return alert('Player name cannot be empty.');
-
-    const players = await fetchPlayers();
-    if (players.some(p => p.name === name)) {
-      alert('Player already exists!');
-      return;
-    }
-
-    const newPlayer = {
-      name: name,
-      tiers: [
-        { tier: "HT1", peakTier: "HT1" } // default tier example
-      ]
-    };
-
-    try {
-      await db.collection('players').add(newPlayer);
-      hideAddPlayerModal();
-      renderPlayers(searchBar.value);
-    } catch (error) {
-      console.error('Error adding player:', error);
-      alert('Failed to add player.');
-    }
-  }
-</script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+</head>
+<body>
+  <input type="text" id="search-bar" placeholder="Pretraži igrače..." />
+  <div id="player-list"></div>
+  <img src="addplayer.webp" id="addplayer-button" class="addplayer-button" alt="Add Player"/>
+  <img src="removeplayer.png" class="removeplayer-button" alt="Remove Player"/>
+  
+  <div id="modal-overlay" style="display: none;">
+    <div id="modal">
+      <h2>Add New Player</h2>
+      <input type="text" id="player-name-input" placeholder="Enter player name" />
+      <div class="modal-buttons">
+        <button id="done-button">Done</button>
+        <button id="cancel-button">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-   const tierPoints = {
-     HT1: 60, LT1: 44, HT2: 28, LT2: 16,
-     HT3: 10, LT3: 6, HT4: 4, LT4: 3,
-     HT5: 2, LT5: 1,
-     RHT1: 60, RLT1: 44, RHT2: 28, RLT2: 16,
-     RHT3: 10, RLT3: 6, RHT4: 4, RLT4: 3,
-     RHT5: 2, RLT5: 1
-   };
+    // Your tier points mapping
+    const tierPoints = {
+      HT1: 60, LT1: 44, HT2: 28, LT2: 16,
+      HT3: 10, LT3: 6, HT4: 4, LT4: 3,
+      HT5: 2, LT5: 1,
+      RHT1: 60, RLT1: 44, RHT2: 28, RLT2: 16,
+      RHT3: 10, RLT3: 6, RHT4: 4, RLT4: 3,
+      RHT5: 2, RLT5: 1
+    };
 
-   const searchBar = document.getElementById('search-bar');
-   const playerList = document.getElementById('player-list');
-   const addPlayerButton = document.getElementById('addplayer-button');
-   const modalOverlay = document.getElementById('modal-overlay');
-   const playerNameInput = document.getElementById('player-name-input');
-   const doneButton = document.getElementById('done-button');
-   const cancelButton = document.getElementById('cancel-button');
+    // Firebase config - replace with your actual config!
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      // ...other config values if you have them
+    };
 
-   // Fetch players from the local server
-   async function fetchPlayers() {
-     try {
-       const response = await fetch('/players');
-       if (!response.ok) {
-         throw new Error('Failed to fetch players');
-       }
-       return await response.json();
-     } catch (error) {
-       console.error('Error fetching players:', error);
-       return [];
-     }
-   }
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-   // Sort players by their tier points (highest first)
-   function sortPlayers(players) {
-     return players.sort((a, b) => {
-       // Calculate total tier points for player a and b
-       const aPoints = a.tiers.reduce((acc, tier) => acc + (tierPoints[tier.tier] || 0), 0);
-       const bPoints = b.tiers.reduce((acc, tier) => acc + (tierPoints[tier.tier] || 0), 0);
-       return bPoints - aPoints;
-     });
-   }
+    const searchBar = document.getElementById('search-bar');
+    const playerList = document.getElementById('player-list');
+    const addPlayerButton = document.getElementById('addplayer-button');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const playerNameInput = document.getElementById('player-name-input');
+    const doneButton = document.getElementById('done-button');
+    const cancelButton = document.getElementById('cancel-button');
 
-   // Create HTML for each player card
-   function createPlayerCard(player, index) {
-     const playerLink = document.createElement('a');
-     playerLink.href = `https://crystals.gg/player/${encodeURIComponent(player.name)}`;
-     playerLink.target = '_blank';
-     playerLink.className = 'player-link';
+    // Fetch all players from Firestore
+    async function fetchPlayers() {
+      try {
+        const snapshot = await db.collection('players').get();
+        const players = [];
+        snapshot.forEach(doc => {
+          players.push(doc.data());
+        });
+        return players;
+      } catch (error) {
+        console.error('Error fetching players:', error);
+        return [];
+      }
+    }
 
-     const playerDiv = document.createElement('div');
-     playerDiv.className = 'player';
+    // Sort players by their tier points (highest first)
+    function sortPlayers(players) {
+      return players.sort((a, b) => {
+        const aPoints = a.tiers.reduce((acc, tier) => acc + (tierPoints[tier.tier] || 0), 0);
+        const bPoints = b.tiers.reduce((acc, tier) => acc + (tierPoints[tier.tier] || 0), 0);
+        return bPoints - aPoints;
+      });
+    }
 
-     const leftSide = document.createElement('div');
-     leftSide.className = 'left-side';
+    // Create player card HTML
+    function createPlayerCard(player, index) {
+      const playerLink = document.createElement('a');
+      playerLink.href = `https://crystals.gg/player/${encodeURIComponent(player.name)}`;
+      playerLink.target = '_blank';
+      playerLink.className = 'player-link';
 
-     const place = document.createElement('h2');
-     place.textContent = (index + 1) + '. ' + player.name;
+      const playerDiv = document.createElement('div');
+      playerDiv.className = 'player';
 
-     // Style top 3 differently
-     if (index === 0) place.classList.add('first-place');
-     else if (index === 1) place.classList.add('second-place');
-     else if (index === 2) place.classList.add('third-place');
-     else place.classList.add('other-players');
+      const leftSide = document.createElement('div');
+      leftSide.className = 'left-side';
 
-     leftSide.appendChild(place);
+      const place = document.createElement('h2');
+      place.textContent = (index + 1) + '. ' + player.name;
 
-     const rightSide = document.createElement('div');
-     rightSide.className = 'right-side';
+      if (index === 0) place.classList.add('first-place');
+      else if (index === 1) place.classList.add('second-place');
+      else if (index === 2) place.classList.add('third-place');
+      else place.classList.add('other-players');
 
-     player.tiers.forEach(tierObj => {
-       const tierSpan = document.createElement('span');
-       tierSpan.className = 'tier ' + tierObj.tier;
+      leftSide.appendChild(place);
 
-       // Show tier text with tooltip
-       tierSpan.textContent = tierObj.tier;
+      const rightSide = document.createElement('div');
+      rightSide.className = 'right-side';
 
-       // Tooltip for peakTier if available
-       if (tierObj.peakTier) {
-         const tooltip = document.createElement('span');
-         tooltip.className = 'tooltip';
-         tooltip.textContent = 'Peak: ' + tierObj.peakTier;
-         tierSpan.appendChild(tooltip);
-       }
+      player.tiers.forEach(tierObj => {
+        const tierSpan = document.createElement('span');
+        tierSpan.className = 'tier ' + tierObj.tier;
+        tierSpan.textContent = tierObj.tier;
 
-       rightSide.appendChild(tierSpan);
-     });
+        if (tierObj.peakTier) {
+          const tooltip = document.createElement('span');
+          tooltip.className = 'tooltip';
+          tooltip.textContent = 'Peak: ' + tierObj.peakTier;
+          tierSpan.appendChild(tooltip);
+        }
 
-     playerDiv.appendChild(leftSide);
-     playerDiv.appendChild(rightSide);
+        rightSide.appendChild(tierSpan);
+      });
 
-     playerLink.appendChild(playerDiv);
+      playerDiv.appendChild(leftSide);
+      playerDiv.appendChild(rightSide);
+      playerLink.appendChild(playerDiv);
 
-     return playerLink;
-   }
+      return playerLink;
+    }
 
-   // Render all players to the list with filtering
-   async function renderPlayers(filterText = '') {
-     const players = await fetchPlayers();
-     if (!players) return;
+    // Render players with optional filtering
+    async function renderPlayers(filterText = '') {
+      const players = await fetchPlayers();
+      if (!players) return;
 
-     // Filter players by name if filterText given
-     let filtered = players.filter(p => p.name.toLowerCase().includes(filterText.toLowerCase()));
+      let filtered = players.filter(p => p.name.toLowerCase().includes(filterText.toLowerCase()));
+      filtered = sortPlayers(filtered);
 
-     // Sort by points
-     filtered = sortPlayers(filtered);
+      playerList.innerHTML = '';
 
-     playerList.innerHTML = '';
+      filtered.forEach((player, index) => {
+        const card = createPlayerCard(player, index);
+        playerList.appendChild(card);
+      });
+    }
 
-     filtered.forEach((player, index) => {
-       const card = createPlayerCard(player, index);
-       playerList.appendChild(card);
-     });
-   }
+    // Show modal for adding player
+    function showAddPlayerModal() {
+      modalOverlay.style.display = 'flex';
+      playerNameInput.value = '';
+      playerNameInput.focus();
+    }
 
-   // Show modal to add player
-   function showAddPlayerModal() {
-     modalOverlay.style.display = 'flex';
-     playerNameInput.value = '';
-     playerNameInput.focus();
-   }
+    // Hide modal
+    function hideAddPlayerModal() {
+      modalOverlay.style.display = 'none';
+    }
 
-   // Hide modal
-   function hideAddPlayerModal() {
-     modalOverlay.style.display = 'none';
-   }
+    // Add player to Firestore
+    async function addPlayer(name) {
+      if (!name) return alert('Player name cannot be empty.');
 
-   // Add player to the local server
-   async function addPlayer(name) {
-     if (!name) return alert('Player name cannot be empty.');
+      const players = await fetchPlayers();
+      if (players.some(p => p.name === name)) {
+        alert('Player already exists!');
+        return;
+      }
 
-     const players = await fetchPlayers();
-     if (players.some(p => p.name === name)) {
-       alert('Player already exists!');
-       return;
-     }
+      const newPlayer = {
+        name: name,
+        tiers: [
+          { tier: "HT1", peakTier: "HT1" } // default tier example
+        ]
+      };
 
-     // Create new player with default tiers for demonstration (adjust as needed)
-     const newPlayer = {
-       name: name,
-       tiers: [
-         { tier: "HT1", peakTier: "HT1" } // default tier example
-       ]
-     };
+      try {
+        await db.collection('players').add(newPlayer);
+        hideAddPlayerModal();
+        renderPlayers(searchBar.value);
+      } catch (error) {
+        console.error('Error adding player:', error);
+        alert('Failed to add player.');
+      }
+    }
 
-     try {
-       const response = await fetch('/players', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json'
-         },
-         body: JSON.stringify(newPlayer)
-       });
+    // Event listeners
+    searchBar.addEventListener('input', () => {
+      renderPlayers(searchBar.value);
+    });
 
-       if (!response.ok) {
-         throw new Error('Failed to add player');
-       }
+    addPlayerButton.addEventListener('click', () => {
+      showAddPlayerModal();
+    });
 
-       hideAddPlayerModal();
-       renderPlayers(searchBar.value);
-     } catch (error) {
-       console.error('Error adding player:', error);
-       alert('Failed to add player.');
-     }
-   }
+    doneButton.addEventListener('click', () => {
+      const playerName = playerNameInput.value.trim();
+      addPlayer(playerName);
+    });
 
-   // Event listeners
-   searchBar.addEventListener('input', () => {
-     renderPlayers(searchBar.value);
-   });
+    cancelButton.addEventListener('click', () => {
+      hideAddPlayerModal();
+    });
 
-   addPlayerButton.addEventListener('click', () => {
-     showAddPlayerModal();
-   });
-
-   doneButton.addEventListener('click', () => {
-     const playerName = playerNameInput.value.trim();
-     addPlayer(playerName);
-   });
-
-   cancelButton.addEventListener('click', () => {
-     hideAddPlayerModal();
-   });
-
-   // Initial render
-   renderPlayers();
- </script>
+    // Initial render
+    renderPlayers();
+  </script>
 </body>
-</html>
-

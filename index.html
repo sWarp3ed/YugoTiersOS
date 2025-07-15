@@ -283,12 +283,11 @@
                 
       
             </body>
-            <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-  const supabaseUrl = 'https://wcjkvjpmivlrncilypec.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjamt2anBtaXZscm5jaWx5cGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0ODMwNDQsImV4cCI6MjA2ODA1OTA0NH0.S1Ewd2qBRogG-bUGHKlAmD-UB8ayH5__32JCwWYKD9A'; // your anon key
-  const supabase = createClient(supabaseUrl, supabaseKey);
+            <script>
+  // Initialize Supabase
+  const SUPABASE_URL = 'https://wcjkvjpmivlrncilypec.supabase.co'; // your Supabase URL
+  const SUPABASE_ANON_KEY = 'YOUR_ANON_PUBLIC_KEY'; // your anon public key
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const tierPoints = {
     HT1: 60, LT1: 44, HT2: 28, LT2: 16,
@@ -313,22 +312,60 @@
 
   let topPlayers = [];
 
-  // Rendering function (kept your original with minor fixes)
+  const playerList = document.getElementById('player-list');
+  const searchBar = document.getElementById('search-bar');
+  const addPlayerBtn = document.getElementById('add-player-btn');
+
+  // Fetch players from Supabase and render
+  async function fetchAndRenderPlayers() {
+    const { data: players, error } = await supabase
+      .from('players')  // just 'players', no 'public.'
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching players:', error);
+      return;
+    }
+
+    // Sort players based on total points
+    players.sort((a, b) => {
+      const calculateTotalPoints = (player) => {
+        let totalPoints = 0;
+        player.tiers.forEach(tier => {
+          const current = tier.tier;
+          const peak = tier.peakTier;
+          const usedTier = peak || current;
+          totalPoints += tierPoints[usedTier] || 0;
+        });
+        return totalPoints;
+      };
+
+      return calculateTotalPoints(b) - calculateTotalPoints(a);
+    });
+
+    // Assign placements
+    players.forEach((player, index) => {
+      player.placement = index + 1;
+    });
+
+    topPlayers = players.slice(0, 10);
+    renderPlayers(topPlayers);
+  }
+
   function renderPlayers(playersToRender) {
-    const playerList = document.getElementById('player-list');
     playerList.innerHTML = '';
 
     playersToRender.forEach(player => {
-      let playerDiv = document.createElement('div');
+      const playerDiv = document.createElement('div');
       playerDiv.classList.add('player-link');
 
-      let playerBox = document.createElement('div');
+      const playerBox = document.createElement('div');
       playerBox.classList.add('player');
 
-      let leftSide = document.createElement('div');
+      const leftSide = document.createElement('div');
       leftSide.classList.add('left-side');
 
-      let playerName = document.createElement('h2');
+      const playerName = document.createElement('h2');
       if (player.name === "sWarped") {
         playerName.style.color = "magenta";
       } else if (player.placement === 1) {
@@ -340,7 +377,6 @@
       } else {
         playerName.classList.add('other-players');
       }
-
       playerName.textContent = player.name;
       leftSide.appendChild(playerName);
 
@@ -350,7 +386,7 @@
           'HT3': 5, 'LT3': 6, 'HT4': 7, 'LT4': 8,
           'HT5': 9, 'LT5': 10
         };
-        const isRetired = (tier) => tier.startsWith("RLT") || tier.startsWith("RHT");
+        const isRetired = tier => tier.startsWith("RLT") || tier.startsWith("RHT");
         if (isRetired(a.tier) && !isRetired(b.tier)) return 1;
         if (!isRetired(a.tier) && isRetired(b.tier)) return -1;
         return (tierOrder[a.tier] || 999) - (tierOrder[b.tier] || 999);
@@ -359,7 +395,7 @@
       let totalPoints = 0;
       let kitsUsed = new Set();
 
-      let rightSide = document.createElement('div');
+      const rightSide = document.createElement('div');
       rightSide.classList.add('right-side');
 
       player.tiers.forEach(tier => {
@@ -367,10 +403,10 @@
         if (kitsUsed.has(kit)) return;
         kitsUsed.add(kit);
 
-        let tierDiv = document.createElement('div');
+        const tierDiv = document.createElement('div');
         tierDiv.classList.add('tier', tier.tier);
 
-        let tooltip = document.createElement('div');
+        const tooltip = document.createElement('div');
         tooltip.classList.add('tooltip');
 
         const current = tier.tier;
@@ -382,19 +418,19 @@
         tooltip.textContent = `${peak ? "Peak Tier" : "Current Tier"}: ${usedTier} — ${points} bodova`;
         tierDiv.appendChild(tooltip);
 
-        let icon = document.createElement('img');
+        const icon = document.createElement('img');
         icon.src = iconURLs[kit] || '';
         icon.alt = `${kit} icon`;
         tierDiv.appendChild(icon);
 
-        let tierText = document.createElement('span');
+        const tierText = document.createElement('span');
         tierText.textContent = current;
         tierDiv.appendChild(tierText);
 
         rightSide.appendChild(tierDiv);
       });
 
-      let playerInfo = document.createElement('div');
+      const playerInfo = document.createElement('div');
       playerInfo.classList.add('info');
       playerInfo.innerHTML = `Mjesto: #${player.placement || 'N/A'}<br>Bodovi: ${totalPoints}`;
       leftSide.appendChild(playerInfo);
@@ -403,61 +439,58 @@
       playerBox.appendChild(rightSide);
       playerDiv.appendChild(playerBox);
 
-      playerDiv.addEventListener('click', () => {
-        window.location.href = `/player/${player.name.toLowerCase().replace(/\s+/g, '-')}`;
-      });
-
+      playerDiv.href = `/player/${player.name.toLowerCase().replace(/\s+/g, '-')}`;
       playerList.appendChild(playerDiv);
     });
   }
 
-  async function fetchAndRenderPlayers() {
-    const { data: players, error } = await supabase
-      .from('public.players')
-      .select('*');
+  // Search input listener
+  searchBar.addEventListener('input', () => {
+    const searchQuery = searchBar.value.toLowerCase();
+    if (!searchQuery) {
+      renderPlayers(topPlayers);
+      return;
+    }
+    const filteredPlayers = topPlayers.filter(player =>
+      player.name.toLowerCase().includes(searchQuery)
+    );
+    renderPlayers(filteredPlayers);
+  });
+
+  // Add player button handler
+  addPlayerBtn.addEventListener('click', async () => {
+    const newName = prompt("Enter player name:");
+    if (!newName) return alert("Name is required!");
+
+    // For demo, create a sample tier structure, you can expand this
+    const newPlayer = {
+      name: newName,
+      tiers: [
+        {
+          kit: "CRYSTALS",
+          tier: "HT1",
+          peakTier: null
+        }
+      ]
+    };
+
+    const { data, error } = await supabase
+      .from('players')
+      .insert([newPlayer]);
 
     if (error) {
-      console.error('Error fetching players:', error);
+      console.error('Error adding player:', error);
+      alert('Failed to add player: ' + error.message);
       return;
     }
 
-    players.sort((a, b) => {
-      const calculateTotalPoints = (player) => {
-        let totalPoints = 0;
-        player.tiers.forEach(tier => {
-          const usedTier = tier.peakTier || tier.tier;
-          totalPoints += tierPoints[usedTier] || 0;
-        });
-        return totalPoints;
-      };
-      return calculateTotalPoints(b) - calculateTotalPoints(a);
-    });
-
-    players.forEach((player, index) => {
-      player.placement = index + 1;
-    });
-
-    topPlayers = players.slice(0, 10);
-
-    renderPlayers(topPlayers);
-  }
-
-  // Initial fetch & render
-  await fetchAndRenderPlayers();
-
-  // Search bar handler
-  const searchBar = document.getElementById('search-bar');
-  searchBar.addEventListener('input', () => {
-    const searchQuery = searchBar.value.toLowerCase();
-    if (searchQuery === '') {
-      renderPlayers(topPlayers);
-    } else {
-      const filteredPlayers = topPlayers.filter(player => player.name.toLowerCase().includes(searchQuery));
-      renderPlayers(filteredPlayers);
-    }
+    alert('Player added successfully!');
+    fetchAndRenderPlayers(); // Refresh the list
   });
+
+  // Initial fetch and render
+  fetchAndRenderPlayers();
+
 </script>
-
-
     </head>
 </html>

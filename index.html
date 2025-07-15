@@ -287,7 +287,7 @@
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
   const supabaseUrl = 'https://wcjkvjpmivlrncilypec.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjamt2anBtaXZscm5jaWx5cGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0ODMwNDQsImV4cCI6MjA2ODA1OTA0NH0.S1Ewd2qBRogG-bUGHKlAmD-UB8ayH5__32JCwWYKD9A'; // Replace with your real anon key
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indjamt2anBtaXZscm5jaWx5cGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0ODMwNDQsImV4cCI6MjA2ODA1OTA0NH0.S1Ewd2qBRogG-bUGHKlAmD-UB8ayH5__32JCwWYKD9A'; // <-- use your full anon public key
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const tierPoints = {
@@ -299,32 +299,10 @@
     RHT5: 2, RLT5: 1,
   };
 
+  const iconURLs = { /* ... icons here ... */ };
+
+  let topPlayers = [];
   let allPlayers = [];
-
-  async function fetchPlayers() {
-    const { data, error } = await supabase.from('players').select('*');
-    if (error) {
-      console.error('Failed to fetch players:', error);
-      return;
-    }
-
-    allPlayers = data;
-
-    allPlayers.forEach(p => {
-      p.placement = 0;
-    });
-
-    const calculateTotalPoints = (player) => {
-      return player.tiers.reduce((total, t) => {
-        const tierName = t.peakTier || t.tier;
-        return total + (tierPoints[tierName] || 0);
-      }, 0);
-    };
-
-    allPlayers.sort((a, b) => calculateTotalPoints(b) - calculateTotalPoints(a));
-    allPlayers.forEach((player, index) => player.placement = index + 1);
-    renderPlayers(allPlayers.slice(0, 6));
-  }
 
   function renderPlayers(playersToRender) {
     const playerList = document.getElementById('player-list');
@@ -333,26 +311,77 @@
     playersToRender.forEach((player) => {
       const playerDiv = document.createElement('div');
       playerDiv.classList.add('player-link');
+
       const playerBox = document.createElement('div');
       playerBox.classList.add('player');
 
       const leftSide = document.createElement('div');
       leftSide.classList.add('left-side');
+
       const playerName = document.createElement('h2');
+      if (player.name === "sWarped") {
+        playerName.style.color = "magenta";
+      }
       playerName.textContent = player.name;
       leftSide.appendChild(playerName);
-      playerBox.appendChild(leftSide);
 
       const rightSide = document.createElement('div');
       rightSide.classList.add('right-side');
-      playerBox.appendChild(rightSide);
 
+      const playerInfo = document.createElement('div');
+      playerInfo.classList.add('info');
+      leftSide.appendChild(playerInfo);
+
+      playerBox.appendChild(leftSide);
+      playerBox.appendChild(rightSide);
       playerDiv.appendChild(playerBox);
+
+      playerDiv.addEventListener('click', () => {
+        window.location.href = `/player/${player.name.toLowerCase().replace(/\s+/g, '-')}`;
+      });
+
       playerList.appendChild(playerDiv);
     });
   }
 
-  // Add player logic
+  async function fetchAndRenderPlayers() {
+    const { data: players, error } = await supabase.from('players').select('*');
+    if (error) {
+      console.error('Error fetching players:', error);
+      return;
+    }
+
+    allPlayers = players;
+
+    const calculateTotalPoints = (player) => {
+      return player.tiers.reduce((total, tier) => {
+        const usedTier = tier.peakTier || tier.tier;
+        return total + (tierPoints[usedTier] || 0);
+      }, 0);
+    };
+
+    players.sort((a, b) => calculateTotalPoints(b) - calculateTotalPoints(a));
+    players.forEach((player, index) => player.placement = index + 1);
+    topPlayers = players.slice(0, 6);
+    renderPlayers(topPlayers);
+  }
+
+  await fetchAndRenderPlayers();
+
+  const searchBar = document.getElementById('search-bar');
+  searchBar.addEventListener('input', () => {
+    const searchQuery = searchBar.value.toLowerCase();
+    if (searchQuery === '') {
+      renderPlayers(topPlayers);
+    } else {
+      const filteredPlayers = allPlayers
+        .filter(player => player.name.toLowerCase().includes(searchQuery))
+        .slice(0, 6);
+      renderPlayers(filteredPlayers);
+    }
+  });
+
+  // Modal + Add player
   const modal = document.getElementById('modal-overlay');
   const playerNameInput = document.getElementById('player-name-input');
   const doneButton = document.getElementById('done-button');
@@ -371,43 +400,23 @@
   });
 
   doneButton.addEventListener('click', async () => {
-  const name = playerNameInput.value.trim();
-  if (!name) return;
+    const name = playerNameInput.value.trim();
+    if (!name) return;
 
-  const newPlayer = {
-    name: name,
-    tiers: [{ tier: "HT5", peakTier: null }],
-  };
+    const newPlayer = {
+      name: name,
+      tiers: [{ tier: "HT5", peakTier: null }],
+    };
 
-  const { data, error } = await supabase
-    .from('players')
-    .insert([newPlayer]);
-
-  if (error) {
-    console.error('Error adding player to Supabase:', error);
-  } else {
-    console.log('Player added:', data);
-    modal.style.display = 'none';
-
-    // Add to allPlayers and re-render
-    allPlayers.unshift(newPlayer);
-    topPlayers = allPlayers.slice(0, 6);
-    renderPlayers(topPlayers);
-  }
-});
-
-  // Search bar
-  const searchBar = document.getElementById('search-bar');
-  searchBar.addEventListener('input', () => {
-    const search = searchBar.value.toLowerCase();
-    if (!search) return renderPlayers(allPlayers.slice(0, 6));
-
-    const results = allPlayers.filter(p => p.name.toLowerCase().includes(search)).slice(0, 6);
-    renderPlayers(results);
+    const { error } = await supabase.from('players').insert([newPlayer]);
+    if (error) {
+      console.error('Error adding player:', error);
+    } else {
+      console.log('Player added');
+      modal.style.display = 'none';
+      await fetchAndRenderPlayers(); // refresh from DB
+    }
   });
-
-  // Initial fetch
-  fetchPlayers();
 </script>
     </head>
 </html>

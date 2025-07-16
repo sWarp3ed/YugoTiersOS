@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yugotiers</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- Styling -->
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: #fff;
+      padding: 20px;
+    }
+
+    #search-bar {
+      padding: 8px;
+      margin-bottom: 12px;
+      width: 200px;
+      border-radius: 4px;
+      border: none;
+    }
+
+    #addplayer-button {
+      margin-left: 10px;
+      padding: 8px 12px;
+      background-color: #03dac5;
+      border: none;
+      color: #000;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    #player-list {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .player-link {
+      text-decoration: none;
+      color: #bb86fc;
+      background-color: #1f1f1f;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .player-link:hover {
+      background-color: #2c2c2c;
+    }
+
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #modal {
+      background-color: #1f1f1f;
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+
+    #modal input {
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+    }
+
+    #done-button, #cancel-button {
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #done-button {
+      background-color: #03dac5;
+      color: black;
+    }
+
+    #cancel-button {
+      background-color: #cf6679;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+  <input id="search-bar" placeholder="Search players..." />
+  <button id="addplayer-button">Add Player</button>
+
+  <div id="player-list"></div>
+
+  <!-- Modal for adding player -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <input id="player-name-input" placeholder="Enter player name" />
+      <input id="kit-input" placeholder="Enter kit (e.g. CRYSTALS)" />
+      <input id="tier-input" placeholder="Enter tier (e.g. HT1)" />
+      <button id="done-button">Add</button>
+      <button id="cancel-button">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
+      authDomain: "yugotiers-b297d.firebaseapp.com",
+      projectId: "yugotiers-b297d",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const searchBar = document.getElementById('search-bar');
+    const playerList = document.getElementById('player-list');
+    const addPlayerButton = document.getElementById('addplayer-button');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const playerNameInput = document.getElementById('player-name-input');
+    const kitInput = document.getElementById('kit-input');
+    const tierInput = document.getElementById('tier-input');
+    const doneButton = document.getElementById('done-button');
+    const cancelButton = document.getElementById('cancel-button');
+
+    // Fetch and render players
+    async function fetchPlayers() {
+      try {
+        const snapshot = await db.collection('players').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (e) {
+        console.error("❌ Error fetching players:", e);
+        return [];
+      }
+    }
+
+    function renderPlayers(players) {
+      playerList.innerHTML = '';
+      players.forEach(p => {
+        const a = document.createElement('a');
+        a.textContent = `${p.name} [${p.kit} - ${p.tier}]`;
+        a.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
+        a.target = '_blank';
+        a.className = 'player-link';
+        playerList.appendChild(a);
+      });
+    }
+
+    async function refreshPlayers(filter = '') {
+      let players = await fetchPlayers();
+      if (filter) {
+        players = players.filter(p =>
+          p.name.toLowerCase().includes(filter.toLowerCase())
+        );
+      }
+      renderPlayers(players);
+    }
+
+    function showModal() {
+      modalOverlay.style.display = 'flex';
+      playerNameInput.value = '';
+      kitInput.value = '';
+      tierInput.value = '';
+      playerNameInput.focus();
+    }
+
+    function hideModal() {
+      modalOverlay.style.display = 'none';
+    }
+
+    async function addPlayer(name) {
+      name = name.trim();
+      const kit = kitInput.value.trim().toUpperCase() || "CRYSTALS";
+      const tier = tierInput.value.trim().toUpperCase() || "HT1";
+
+      if (!name) {
+        alert('Player name cannot be empty.');
+        return;
+      }
+
+      const existingPlayers = await fetchPlayers();
+      if (existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        alert('Player already exists!');
+        return;
+      }
+
+      try {
+        await db.collection('players').add({
+          name: name,
+          kit: kit,
+          tier: tier,
+          tiers: [{ tier: tier, peakTier: tier }]
+        });
+
+        console.log(`✅ Player "${name}" added.`);
+        hideModal();
+        searchBar.value = '';
+        await refreshPlayers();
+      } catch (e) {
+        console.error("❌ Error adding player:", e);
+        alert('Error adding player.');
+      }
+    }
+
+    // Event listeners
+    searchBar.addEventListener('input', () => {
+      refreshPlayers(searchBar.value);
+    });
+
+    addPlayerButton.addEventListener('click', showModal);
+    cancelButton.addEventListener('click', hideModal);
+
+    doneButton.addEventListener('click', () => {
+      addPlayer(playerNameInput.value);
+    });
+
+    playerNameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addPlayer(playerNameInput.value);
+    });
+
+    // Initial load
+    refreshPlayers();
+  </script>
+
+</body>
+</html

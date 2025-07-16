@@ -291,19 +291,25 @@
 
 <div id="kit-panel" class="player-profile">
   <h2 id="kit-title">Kit Tier</h2>
-  <div id="tier-buttons" style="margin-top: 20px; margin-left:70px; display: flex; flex-wrap: wrap; gap: 10px;">
+  <div id="tier-buttons" style="
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+">
   <button onclick="selectTier('LT5')">LT5</button>
-  <button onclick="selectTier('HT5')">HT5</button>
   <button onclick="selectTier('LT4')">LT4</button>
-  <button onclick="selectTier('HT4')">HT4</button>
   <button onclick="selectTier('LT3')">LT3</button>
-  <button onclick="selectTier('HT3')">HT3</button>
   <button onclick="selectTier('LT2')">LT2</button>
-  <button onclick="selectTier('HT3')">HT2</button>
-  <button onclick="selectTier('LT2')">LT1</button>
-  <button onclick="selectTier('HT2')">HT1</button>
-</div>
-  <button onclick="closeKitSettings()">Close</button>
+  <button onclick="selectTier('LT1')">LT1</button>
+  <button onclick="selectTier('T')">T</button>
+  <button onclick="selectTier('HT1')">HT1</button>
+  <button onclick="selectTier('HT2')">HT2</button>
+  <button onclick="selectTier('HT3')">HT3</button>
+  <button onclick="selectTier('HT4')">HT4</button>
+  <button onclick="selectTier('HT5')">HT5</button>
 </div>
 
   <script>

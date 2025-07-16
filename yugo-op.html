@@ -601,6 +601,21 @@ function hideModal() {
   modalOverlay.style.display = 'none';
 }
 
+function refreshPlayers(searchTerm = "") {
+  const filteredPlayers = players.filter(player => 
+    player.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const playerListElement = document.getElementById("player-list");
+  playerListElement.innerHTML = ""; // clear current list
+
+  filteredPlayers.forEach(player => {
+    const playerItem = document.createElement("div");
+    playerItem.textContent = `${player.name} (${player.tier})`;
+    playerListElement.appendChild(playerItem);
+  });
+}
+
 // Search bar filtering
 searchBar.oninput = () => {
   refreshPlayers(searchBar.value);

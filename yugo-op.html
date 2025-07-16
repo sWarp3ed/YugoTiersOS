@@ -171,40 +171,40 @@
     }
 
     function renderPlayers(players) {
-      playerList.innerHTML = '';
-      players.forEach(p => {
-        const container = document.createElement('div');
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-        container.style.backgroundColor = '#1f1f1f';
-        container.style.padding = '8px';
-        container.style.borderRadius = '4px';
+  playerList.innerHTML = '';
+  players.forEach(p => {
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.justifyContent = 'space-between';
+    container.style.alignItems = 'center';
+    container.style.backgroundColor = '#1f1f1f';
+    container.style.padding = '8px';
+    container.style.borderRadius = '4px';
 
-        const link = document.createElement('a');
-        link.textContent = `${p.name} [${p.kit} - ${p.tier}]`;
-        link.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
-        link.target = '_blank';
-        link.className = 'player-link';
-        link.style.flex = '1';
+    const link = document.createElement('a');
+    link.textContent = p.name;
+    link.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
+    link.target = '_blank';
+    link.className = 'player-link';
+    link.style.flex = '1';
 
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '🗑️';
-        removeBtn.style.marginLeft = '10px';
-        removeBtn.style.backgroundColor = '#cf6679';
-        removeBtn.style.border = 'none';
-        removeBtn.style.borderRadius = '4px';
-        removeBtn.style.color = 'black';
-        removeBtn.style.cursor = 'pointer';
-        removeBtn.style.padding = '4px 8px';
-        removeBtn.title = `Delete ${p.name}`;
-        removeBtn.onclick = () => deletePlayer(p.id, p.name);
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '🗑️';
+    removeBtn.style.marginLeft = '10px';
+    removeBtn.style.backgroundColor = '#cf6679';
+    removeBtn.style.border = 'none';
+    removeBtn.style.borderRadius = '4px';
+    removeBtn.style.color = 'black';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.style.padding = '4px 8px';
+    removeBtn.title = `Delete ${p.name}`;
+    removeBtn.onclick = () => deletePlayer(p.id, p.name);
 
-        container.appendChild(link);
-        container.appendChild(removeBtn);
-        playerList.appendChild(container);
-      });
-    }
+    container.appendChild(link);
+    container.appendChild(removeBtn);
+    playerList.appendChild(container);
+  });
+}
 
     async function refreshPlayers(filter = '') {
       let players = await fetchPlayers();

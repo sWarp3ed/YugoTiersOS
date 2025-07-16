@@ -238,6 +238,7 @@
   </div>
 
   <script>
+  document.addEventListener("DOMContentLoaded", () => {
     const firebaseConfig = {
       apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
       authDomain: "yugotiers-b297d.firebaseapp.com",
@@ -345,31 +346,30 @@
     }
 
     function openProfile(player) {
-  selectedPlayerId = player.id;
-  profile.style.display = 'flex';
-  profileName.textContent = player.name;
-  profileTiers.innerHTML = '';
+      selectedPlayerId = player.id;
+      profile.style.display = 'flex';
+      profileName.textContent = player.name;
+      profileTiers.innerHTML = '';
 
-  // Set player skin image using Minotar API (80x80 px)
-  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/180`;
+      document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
-  player.tiers?.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'tier-entry';
-    div.innerHTML = `
-      <input value="${t.tier}" />
-      <select>
-        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-      </select>
-      <button onclick="this.parentElement.remove()">🗑️</button>
-    `;
-    profileTiers.appendChild(div);
-  });
-}
+      player.tiers?.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'tier-entry';
+        div.innerHTML = `
+          <input value="${t.tier}" />
+          <select>
+            <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+            <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+            <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+          </select>
+          <button onclick="this.parentElement.remove()">🗑️</button>
+        `;
+        profileTiers.appendChild(div);
+      });
+    }
 
-    function addTierEntry() {
+    window.addTierEntry = function () {
       const div = document.createElement('div');
       div.className = 'tier-entry';
       div.innerHTML = `
@@ -382,7 +382,7 @@
         <button onclick="this.parentElement.remove()">🗑️</button>
       `;
       profileTiers.appendChild(div);
-    }
+    };
 
     searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
     addPlayerButton.addEventListener('click', showModal);
@@ -393,6 +393,7 @@
     });
 
     refreshPlayers();
-  </script>
+  });
+</script>
 </body>
 </html>

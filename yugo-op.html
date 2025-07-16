@@ -173,12 +173,36 @@
     function renderPlayers(players) {
       playerList.innerHTML = '';
       players.forEach(p => {
-        const a = document.createElement('a');
-        a.textContent = `${p.name} [${p.kit} - ${p.tier}]`;
-        a.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
-        a.target = '_blank';
-        a.className = 'player-link';
-        playerList.appendChild(a);
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.justifyContent = 'space-between';
+        container.style.alignItems = 'center';
+        container.style.backgroundColor = '#1f1f1f';
+        container.style.padding = '8px';
+        container.style.borderRadius = '4px';
+
+        const link = document.createElement('a');
+        link.textContent = `${p.name} [${p.kit} - ${p.tier}]`;
+        link.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
+        link.target = '_blank';
+        link.className = 'player-link';
+        link.style.flex = '1';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '🗑️';
+        removeBtn.style.marginLeft = '10px';
+        removeBtn.style.backgroundColor = '#cf6679';
+        removeBtn.style.border = 'none';
+        removeBtn.style.borderRadius = '4px';
+        removeBtn.style.color = 'black';
+        removeBtn.style.cursor = 'pointer';
+        removeBtn.style.padding = '4px 8px';
+        removeBtn.title = `Delete ${p.name}`;
+        removeBtn.onclick = () => deletePlayer(p.id, p.name);
+
+        container.appendChild(link);
+        container.appendChild(removeBtn);
+        playerList.appendChild(container);
       });
     }
 
@@ -235,6 +259,20 @@
       } catch (e) {
         console.error("❌ Error adding player:", e);
         alert('Error adding player.');
+      }
+    }
+
+    async function deletePlayer(id, name) {
+      const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
+      if (!confirmDelete) return;
+
+      try {
+        await db.collection('players').doc(id).delete();
+        console.log(`🗑️ Player "${name}" deleted.`);
+        await refreshPlayers(searchBar.value);
+      } catch (e) {
+        console.error("❌ Error deleting player:", e);
+        alert('Error deleting player.');
       }
     }
 

@@ -349,7 +349,8 @@
 }
 
 function closeKitSettings() {
-  document.getElementById("kit-panel").style.display = "none";
+  const panel = document.getElementById("kit-panel");
+  if (panel) panel.style.display = "none";
 }
 
   async function refreshPlayers(filter = '') {

@@ -1,13 +1,11 @@
+<!-- Full updated HTML file for Yugo OPS with working profile tiers (add, edit, delete) and save button -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yugo OPS</title>
-
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <style>
     body {
       background-image: url("https://picfiles.alphacoders.com/478/478314.png");
@@ -235,8 +233,6 @@
   cursor: pointer;
   font-size: 24px;
 }
-
-
   </style>
 </head>
 <body>
@@ -244,7 +240,6 @@
   <img src="addplayer.webp" id="addplayer-button" alt="Add Player">
   <div id="player-list"></div>
 
-  <!-- Add Player Modal -->
   <div id="modal-overlay">
     <div id="modal">
       <input id="player-name-input" placeholder="Enter player name" />
@@ -253,13 +248,14 @@
     </div>
   </div>
 
-  <!-- Player Profile Panel -->
   <div id="player-profile">
     <img id="profile-skin" alt="Player Skin" />
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
     <div id="profile-tiers"></div>
+    <button id="add-tier-btn" style="margin-left:50px; font-size:20px;">+ Add Tier</button>
+    <button id="save-tiers-btn" style="margin-left:10px; font-size:20px;">💾 Save</button>
     <div>
       <a  class="kit-button" data-kit="kit1"><img src="https://mctiers.com/tier_icons/vanilla.svg" width="40" height="40" alt="Netherite OP"></a>
       <a  class="kit-button" data-kit="kit2"><img src="https://mctiers.com/tier_icons/axe.svg" width="40" height="40" alt="Netherite OP"></a>
@@ -279,208 +275,159 @@
     <p>This is information about Kit 1.</p>
   </div>
 </div>
-  </div>
 
   <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
-    authDomain: "yugotiers-b297d.firebaseapp.com",
-    projectId: "yugotiers-b297d",
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
+      authDomain: "yugotiers-b297d.firebaseapp.com",
+      projectId: "yugotiers-b297d",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    const searchBar = document.getElementById('search-bar');
+    const playerList = document.getElementById('player-list');
+    const addPlayerButton = document.getElementById('addplayer-button');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const playerNameInput = document.getElementById('player-name-input');
+    const doneButton = document.getElementById('done-button');
+    const cancelButton = document.getElementById('cancel-button');
+    const profile = document.getElementById('player-profile');
+    const profileName = document.getElementById('profile-name');
+    const profileTiers = document.getElementById('profile-tiers');
+    const addTierBtn = document.getElementById('add-tier-btn');
+    const saveTiersBtn = document.getElementById('save-tiers-btn');
 
-  const searchBar = document.getElementById('search-bar');
-  const playerList = document.getElementById('player-list');
-  const addPlayerButton = document.getElementById('addplayer-button');
-  const modalOverlay = document.getElementById('modal-overlay');
-  const playerNameInput = document.getElementById('player-name-input');
-  const doneButton = document.getElementById('done-button');
-  const cancelButton = document.getElementById('cancel-button');
-  const profile = document.getElementById('player-profile');
-  const profileName = document.getElementById('profile-name');
-  const profileTiers = document.getElementById('profile-tiers');
+    let selectedPlayerId = null;
 
-  let selectedPlayerId = null;
-
-  async function fetchPlayers() {
-    const snapshot = await db.collection('players').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-
-  function renderPlayers(players) {
-    playerList.innerHTML = '';
-    players.forEach(p => {
-      const container = document.createElement('div');
-      container.style.display = 'flex';
-      container.style.justifyContent = 'space-between';
-      container.style.alignItems = 'center';
-      container.style.backgroundColor = '#1f1f1f';
-      container.style.padding = '8px';
-      container.style.borderRadius = '4px';
-
-      const link = document.createElement('div');
-      link.textContent = p.name;
-      link.className = 'player-link';
-      link.style.flex = '1';
-      link.onclick = () => openProfile(p);
-
-      const removeBtn = document.createElement('button');
-      removeBtn.textContent = '🗑️';
-      removeBtn.style.marginLeft = '10px';
-      removeBtn.style.backgroundColor = '#cf6679';
-      removeBtn.style.border = 'none';
-      removeBtn.style.borderRadius = '4px';
-      removeBtn.style.color = 'black';
-      removeBtn.style.cursor = 'pointer';
-      removeBtn.style.padding = '4px 8px';
-      removeBtn.title = `Delete ${p.name}`;
-      removeBtn.onclick = (e) => {
-        e.stopPropagation();
-        deletePlayer(p.id, p.name);
-      };
-
-      container.appendChild(link);
-      container.appendChild(removeBtn);
-      playerList.appendChild(container);
-    });
-  }
-
-  async function refreshPlayers(filter = '') {
-    let players = await fetchPlayers();
-    if (filter) {
-      players = players.filter(p =>
-        p.name.toLowerCase().includes(filter.toLowerCase())
-      );
-    }
-    renderPlayers(players);
-  }
-
-  function showModal() {
-    modalOverlay.style.display = 'flex';
-    playerNameInput.value = '';
-    playerNameInput.focus();
-  }
-
-  function hideModal() {
-    modalOverlay.style.display = 'none';
-  }
-
-  async function addPlayer(name) {
-    name = name.trim();
-    if (!name) return alert('Player name cannot be empty.');
-
-    const existing = await fetchPlayers();
-    if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-      return alert('Player already exists!');
+    async function fetchPlayers() {
+      const snapshot = await db.collection('players').get();
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 
-    await db.collection('players').add({ name, tiers: [] });
-    hideModal();
-    searchBar.value = '';
-    await refreshPlayers();
-  }
+    function renderPlayers(players) {
+      playerList.innerHTML = '';
+      players.forEach(p => {
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.justifyContent = 'space-between';
+        container.style.alignItems = 'center';
+        container.style.backgroundColor = '#1f1f1f';
+        container.style.padding = '8px';
+        container.style.borderRadius = '4px';
 
-  async function deletePlayer(id, name) {
-    if (!confirm(`Delete "${name}"?`)) return;
-    await db.collection('players').doc(id).delete();
-    await refreshPlayers(searchBar.value);
-  }
+        const link = document.createElement('div');
+        link.textContent = p.name;
+        link.className = 'player-link';
+        link.style.flex = '1';
+        link.onclick = () => openProfile(p);
 
-  function openProfile(player) {
-  selectedPlayerId = player.id;
-  profile.style.display = 'flex';
-  profileName.textContent = player.name;
-  profileTiers.innerHTML = '';
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '🗑️';
+        removeBtn.style.backgroundColor = '#cf6679';
+        removeBtn.style.border = 'none';
+        removeBtn.style.borderRadius = '4px';
+        removeBtn.style.color = 'black';
+        removeBtn.style.cursor = 'pointer';
+        removeBtn.style.padding = '4px 8px';
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
+          deletePlayer(p.id, p.name);
+        };
 
-  // Set player skin image using Minotar API (80x80 px)
-  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
+        container.appendChild(link);
+        container.appendChild(removeBtn);
+        playerList.appendChild(container);
+      });
+    }
 
-  player.tiers?.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'tier-entry';
-    div.innerHTML = `
-      <input value="${t.tier}" />
-      <select>
-        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-      </select>
-      <button onclick="this.parentElement.remove()">🗑️</button>
-    `;
-    profileTiers.appendChild(div);
-  });
-}
+    async function refreshPlayers(filter = '') {
+      let players = await fetchPlayers();
+      if (filter) {
+        players = players.filter(p =>
+          p.name.toLowerCase().includes(filter.toLowerCase())
+        );
+      }
+      renderPlayers(players);
+    }
 
-const popup = document.getElementById('kit-popup');
-  const closeBtn = document.querySelector('.close-btn');
-  const kitDescription = document.getElementById('kit-description');
+    function showModal() {
+      modalOverlay.style.display = 'flex';
+      playerNameInput.value = '';
+      playerNameInput.focus();
+    }
 
-  // Add click event to all buttons
-  document.querySelectorAll('.kit-button').forEach(button => {
-    button.addEventListener('click', () => {
-      const kit = button.getAttribute('data-kit');
+    function hideModal() {
+      modalOverlay.style.display = 'none';
+    }
 
-      // Optional: change popup content based on the kit
-      if (kit === 'kit1') {
-        kitDescription.textContent = 'This is Vanilla OP kit.';
-      } else if (kit === 'kit2') {
-        kitDescription.textContent = 'This is Crystal OP kit.';
-      } else {
-        kitDescription.textContent = 'Unknown kit.';
+    async function addPlayer(name) {
+      name = name.trim();
+      if (!name) return alert('Player name cannot be empty.');
+
+      const existing = await fetchPlayers();
+      if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        return alert('Player already exists!');
       }
 
-      popup.style.display = 'block';
-    });
-  });
-
-  // Close popup
-  closeBtn.addEventListener('click', () => {
-    popup.style.display = 'none';
-  });
-
-  window.addEventListener('click', (e) => {
-    if (e.target === popup) {
-      popup.style.display = 'none';
+      await db.collection('players').add({ name, tiers: [] });
+      hideModal();
+      searchBar.value = '';
+      await refreshPlayers();
     }
-  });
 
-  function addTierEntry() {
-    const div = document.createElement('div');
-    div.className = 'tier-entry';
+    async function deletePlayer(id, name) {
+      if (!confirm(`Delete "${name}"?`)) return;
+      await db.collection('players').doc(id).delete();
+      await refreshPlayers(searchBar.value);
+    }
 
-    const input = document.createElement('input');
-    input.placeholder = 'Enter tier...';
+    function openProfile(player) {
+      selectedPlayerId = player.id;
+      profile.style.display = 'flex';
+      profileName.textContent = player.name;
+      profileTiers.innerHTML = '';
 
-    const select = document.createElement('select');
-    ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
-      const option = document.createElement('option');
-      option.value = kit;
-      option.textContent = kit;
-      select.appendChild(option);
-    });
+      document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '🗑️';
-    delBtn.onclick = () => div.remove();
+      player.tiers?.forEach(t => addTierRow(t.tier, t.kit));
+    }
 
-    div.appendChild(input);
-    div.appendChild(select);
-    div.appendChild(delBtn);
+    function addTierRow(tier = '', kit = 'CRYSTALS') {
+      const div = document.createElement('div');
+      div.className = 'tier-entry';
+      div.innerHTML = `
+        <input value="${tier}" placeholder="Enter tier" />
+        <select>
+          <option value="CRYSTALS" ${kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+          <option value="NODEBUFF" ${kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+          <option value="GAPPLE" ${kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+        </select>
+        <button onclick="this.parentElement.remove()">🗑️</button>
+      `;
+      profileTiers.appendChild(div);
+    }
 
-    profileTiers.appendChild(div);
-  }
+    addTierBtn.onclick = () => addTierRow();
 
-  searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
-  addPlayerButton.addEventListener('click', showModal);
-  cancelButton.addEventListener('click', hideModal);
-  doneButton.addEventListener('click', () => addPlayer(playerNameInput.value));
-  playerNameInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') addPlayer(playerNameInput.value);
-  });
+    saveTiersBtn.onclick = async () => {
+      if (!selectedPlayerId) return;
+      const tiers = Array.from(profileTiers.children).map(div => {
+        const input = div.querySelector('input');
+        const select = div.querySelector('select');
+        return { tier: input.value.trim(), kit: select.value };
+      }).filter(t => t.tier !== '');
 
-  refreshPlayers();
-</script>
+      await db.collection('players').doc(selectedPlayerId).update({ tiers });
+      alert('Tiers saved!');
+    }
+
+    searchBar.addEventListener('input', e => refreshPlayers(e.target.value));
+    addPlayerButton.onclick = showModal;
+    cancelButton.onclick = hideModal;
+    doneButton.onclick = () => addPlayer(playerNameInput.value);
+
+    refreshPlayers();
+  </script>
 </body>
 </html>

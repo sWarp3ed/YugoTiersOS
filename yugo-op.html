@@ -8,6 +8,7 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://unpkg.com/skinview3d@2.7.3/dist/skinview3d.min.js"></script>
 
   <style>
     body {
@@ -192,6 +193,14 @@
   border: 2px solid #03dac5;
 }
 
+ #skin-viewer {
+  border: 3px solid #03dac5;
+  border-radius: 15px;
+  background-color: #222;
+  margin-bottom: 20px;
+  cursor: grab;
+}
+
   </style>
 </head>
 <body>
@@ -210,7 +219,7 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
-    <img id="profile-skin" alt="Player Skin" />
+    <div id="skin-viewer" style="width: 300px; height: 400px;"></div>
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
@@ -283,6 +292,66 @@
         playerList.appendChild(container);
       });
     }
+
+    const skinViewerContainer = document.getElementById('skin-viewer');
+
+const viewer = new skinview3d.SkinViewer({
+  canvas: document.createElement('canvas'),
+  width: 300,
+  height: 400,
+  skin: `https://minotar.net/skin/Steve`, // default skin at start
+});
+
+skinViewerContainer.appendChild(viewer.canvas);
+
+// Enable mouse drag rotation on the viewer container
+let isDragging = false;
+let lastX = 0;
+
+skinViewerContainer.addEventListener('mousedown', e => {
+  isDragging = true;
+  lastX = e.clientX;
+  skinViewerContainer.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  skinViewerContainer.style.cursor = 'grab';
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const deltaX = e.clientX - lastX;
+  lastX = e.clientX;
+  viewer.camera.rotation.y += deltaX * 0.01; // rotate model horizontally
+});
+
+// -------------- MODIFY your openProfile function to this --------------
+
+function openProfile(player) {
+  selectedPlayerId = player.id;
+  profile.style.display = 'flex';
+  profileName.textContent = player.name;
+  profileTiers.innerHTML = '';
+
+  // Load player's skin into the 3D viewer instead of static image
+  viewer.loadSkin(`https://minotar.net/skin/${player.name}`);
+
+  player.tiers?.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
+    div.innerHTML = `
+      <input value="${t.tier}" />
+      <select>
+        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+      </select>
+      <button onclick="this.parentElement.remove()">🗑️</button>
+    `;
+    profileTiers.appendChild(div);
+  });
+}
 
     async function refreshPlayers(filter = '') {
       let players = await fetchPlayers();
@@ -379,6 +448,39 @@
     playerNameInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') addPlayer(playerNameInput.value);
     });
+
+    const skinViewerContainer = document.getElementById('skin-viewer');
+
+const viewer = new skinview3d.SkinViewer({
+  canvas: document.createElement('canvas'),
+  width: 300,
+  height: 400,
+  skin: `https://minotar.net/skin/Steve`, // default skin at start
+});
+
+skinViewerContainer.appendChild(viewer.canvas);
+
+// Enable mouse drag rotation
+let isDragging = false;
+let lastX = 0;
+
+skinViewerContainer.addEventListener('mousedown', e => {
+  isDragging = true;
+  lastX = e.clientX;
+  skinViewerContainer.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  skinViewerContainer.style.cursor = 'grab';
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const deltaX = e.clientX - lastX;
+  lastX = e.clientX;
+  viewer.camera.rotation.y += deltaX * 0.01; // rotate model horizontally
+});
 
     refreshPlayers();
   </script>

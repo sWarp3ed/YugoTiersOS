@@ -431,7 +431,6 @@
     profileTiers.appendChild(div);
   });
 }
-
 function openPopup() {
   document.getElementById("kit-settings-panel").style.display = "flex";
 }
@@ -439,6 +438,29 @@ function openPopup() {
 function closeKitSettings() {
   document.getElementById("kit-settings-panel").style.display = "none";
 }
+
+function openPopup() {
+    document.getElementById("popup").style.display = "flex";
+  }
+
+  function closePopup() {
+    document.getElementById("popup").style.display = "none";
+  }
+
+  function addTierEntry() {
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
+
+    const input = document.createElement('input');
+    input.placeholder = 'Enter tier...';
+
+    const select = document.createElement('select');
+    ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
+      const option = document.createElement('option');
+      option.value = kit;
+      option.textContent = kit;
+      select.appendChild(option);
+    });
 
     const delBtn = document.createElement('button');
     delBtn.textContent = '🗑️';
@@ -449,7 +471,7 @@ function closeKitSettings() {
     div.appendChild(delBtn);
 
     profileTiers.appendChild(div);
-  
+  }
 
   searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
   addPlayerButton.addEventListener('click', showModal);

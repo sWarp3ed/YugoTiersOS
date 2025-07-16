@@ -8,7 +8,6 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://unpkg.com/skinview3d@2.7.3/dist/skinview3d.min.js"></script>
 
   <style>
     body {
@@ -197,6 +196,7 @@
 </head>
 <body>
   <input id="search-bar" placeholder="Search players..." />
+  <canvas id="skin-canvas" style="width: 200px; height: 300px;"></canvas>
   <img src="addplayer.webp" id="addplayer-button" alt="Add Player">
   <div id="player-list"></div>
 
@@ -330,26 +330,42 @@ let skinViewer = null;
     }
 
     function openProfile(player) {
-  selectedPlayerId = player.id;
-  profile.style.display = 'flex';
-  profileName.textContent = player.name;
-  profileTiers.innerHTML = '';
+  const profileView = document.getElementById('profile-view');
+  const playerNameEl = document.getElementById('profile-name');
+  const skinCanvas = document.getElementById('skin-canvas');
 
-  // Set player skin image using Minotar API (80x80 px)
-  if (skinViewer) {
-  skinViewer.destroy();
+  profileView.style.display = 'block';
+  playerNameEl.textContent = player.name;
+
+  // Clear any existing skin viewer if needed
+  if (window.currentSkinViewer) {
+    window.currentSkinViewer.dispose();
+  }
+
+  // Initialize skinview3d
+  const skinViewer = new skinview3d.SkinViewer({
+    canvas: skinCanvas,
+    width: 200,
+    height: 300,
+    skin: `https://minotar.net/skin/${player.name}`
+  });
+
+  skinViewer.controls.enableZoom = false;
+  skinViewer.animation = new skinview3d.WalkingAnimation();
+  skinViewer.animation.speed = 1.2;
+
+  // Store globally so we can dispose it later
+  window.currentSkinViewer = skinViewer;
+
+  // Load tiers
+  const tiersList = document.getElementById('profile-tiers');
+  tiersList.innerHTML = '';
+  for (const tier of player.tiers) {
+    const li = document.createElement('li');
+    li.textContent = `${tier.kit}: ${tier.tier}`;
+    tiersList.appendChild(li);
+  }
 }
-
-skinViewer = new skinview3d.SkinViewer({
-  canvas: null,
-  width: 180,
-  height: 230,
-  container: skinViewerContainer,
-  skin: `https://minotar.net/skin/${player.name}`
-});
-
-skinViewer.animation = 'idle'; // optional: 'idle' or 'walk' etc
-skinViewer.playerSkin.url = `https://minotar.net/skin/${player.name}`;
 
   player.tiers?.forEach(t => {
     const div = document.createElement('div');
@@ -365,7 +381,7 @@ skinViewer.playerSkin.url = `https://minotar.net/skin/${player.name}`;
     `;
     profileTiers.appendChild(div);
   });
-}
+
     function showPlayerProfile(player) {
         // Use Minotar API as placeholder skin viewer
     document.getElementById('profile-skin').src = `https://minotar.net/body/${player.name}/180`;

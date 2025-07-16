@@ -2,124 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yugotiers</title>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- Styling -->
+  <title>Yugo OPS</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background-color: #121212;
-      color: #fff;
-      padding: 20px;
-    }
-
-    #search-bar {
-      padding: 8px;
-      margin-bottom: 12px;
-      width: 200px;
-      border-radius: 4px;
-      border: none;
-    }
-
-    #addplayer-button {
-      margin-left: 10px;
-      padding: 8px 12px;
-      background-color: #03dac5;
-      border: none;
-      color: #000;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-
-    #player-list {
-      margin-top: 20px;
+    #player-list div {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .player-link {
-      text-decoration: none;
-      color: #bb86fc;
-      background-color: #1f1f1f;
-      padding: 8px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-
-    .player-link:hover {
-      background-color: #2c2c2c;
-    }
-
-    #modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0, 0, 0, 0.6);
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      z-index: 1000;
-    }
-
-    #modal {
       background-color: #1f1f1f;
-      padding: 20px;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 300px;
-    }
-
-    #modal input {
-      padding: 10px;
-      border: none;
-      border-radius: 4px;
-    }
-
-    #done-button, #cancel-button {
       padding: 8px;
-      border: none;
       border-radius: 4px;
+      margin-bottom: 4px;
+      color: white;
       cursor: pointer;
     }
-
-    #done-button {
-      background-color: #03dac5;
-      color: black;
+    .tier-icon {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      margin-right: 8px;
     }
-
-    #cancel-button {
-      background-color: #cf6679;
-      color: black;
+    .tier-entry {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+      color: white;
+    }
+    .tier-entry input {
+      margin-right: 8px;
+      width: 100px;
     }
   </style>
 </head>
-<body>
+<body style="background:#121212; color:white; font-family: sans-serif;">
 
   <input id="search-bar" placeholder="Search players..." />
+  <div id="player-list"></div>
   <button id="addplayer-button">Add Player</button>
 
-  <div id="player-list"></div>
-
-  <!-- Modal for adding player -->
-  <div id="modal-overlay">
-    <div id="modal">
-      <input id="player-name-input" placeholder="Enter player name" />
-      <input id="kit-input" placeholder="Enter kit (e.g. CRYSTALS)" />
-      <input id="tier-input" placeholder="Enter tier (e.g. HT1)" />
-      <button id="done-button">Add</button>
+  <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; 
+       width:100%; height:100%; background:rgba(0,0,0,0.7); 
+       justify-content:center; align-items:center; color:black;">
+    <div style="background:white; padding:20px; border-radius:10px;">
+      <input id="player-name-input" placeholder="Player name" />
+      <button id="done-button">Done</button>
       <button id="cancel-button">Cancel</button>
     </div>
   </div>
 
+  <div id="player-profile" style="display:none; margin-top:20px;">
+    <img id="profile-skin" src="" alt="Player skin" width="80" height="80" />
+    <div id="profile-name" style="font-size:24px; margin-bottom:10px;"></div>
+    <div id="profile-tiers"></div>
+    <button id="add-tier-button">➕ Add Tier</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
   <script>
-    // Firebase config
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
       authDomain: "yugotiers-b297d.firebaseapp.com",
@@ -134,31 +76,35 @@
     const addPlayerButton = document.getElementById('addplayer-button');
     const modalOverlay = document.getElementById('modal-overlay');
     const playerNameInput = document.getElementById('player-name-input');
-    const kitInput = document.getElementById('kit-input');
-    const tierInput = document.getElementById('tier-input');
     const doneButton = document.getElementById('done-button');
     const cancelButton = document.getElementById('cancel-button');
+    const profile = document.getElementById('player-profile');
+    const profileName = document.getElementById('profile-name');
+    const profileTiers = document.getElementById('profile-tiers');
+    const profileSkin = document.getElementById('profile-skin');
+    const addTierButton = document.getElementById('add-tier-button');
 
-    // Fetch and render players
+    let selectedPlayerId = null;
+
+    // Map kits to SVG icon URLs (you can replace these URLs with your own)
+    const iconMap = {
+      CRYSTALS: '<svg class="tier-icon" viewBox="0 0 24 24" fill="cyan"><circle cx="12" cy="12" r="10"/></svg>',
+      NODEBUFF: '<svg class="tier-icon" viewBox="0 0 24 24" fill="orange"><rect x="4" y="4" width="16" height="16"/></svg>',
+      GAPPLE: '<svg class="tier-icon" viewBox="0 0 24 24" fill="lime"><polygon points="12,2 22,22 2,22"/></svg>',
+    };
+
     async function fetchPlayers() {
-      try {
-        const snapshot = await db.collection('players').get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      } catch (e) {
-        console.error("❌ Error fetching players:", e);
-        return [];
-      }
+      const snapshot = await db.collection('players').get();
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 
     function renderPlayers(players) {
       playerList.innerHTML = '';
       players.forEach(p => {
-        const a = document.createElement('a');
-        a.textContent = `${p.name} [${p.kit} - ${p.tier}]`;
-        a.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
-        a.target = '_blank';
-        a.className = 'player-link';
-        playerList.appendChild(a);
+        const container = document.createElement('div');
+        container.textContent = p.name;
+        container.onclick = () => openProfile(p);
+        playerList.appendChild(container);
       });
     }
 
@@ -175,8 +121,6 @@
     function showModal() {
       modalOverlay.style.display = 'flex';
       playerNameInput.value = '';
-      kitInput.value = '';
-      tierInput.value = '';
       playerNameInput.focus();
     }
 
@@ -186,57 +130,98 @@
 
     async function addPlayer(name) {
       name = name.trim();
-      const kit = kitInput.value.trim().toUpperCase() || "CRYSTALS";
-      const tier = tierInput.value.trim().toUpperCase() || "HT1";
+      if (!name) return alert('Player name cannot be empty.');
 
-      if (!name) {
-        alert('Player name cannot be empty.');
-        return;
+      const existing = await fetchPlayers();
+      if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        return alert('Player already exists!');
       }
 
-      const existingPlayers = await fetchPlayers();
-      if (existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-        alert('Player already exists!');
-        return;
-      }
-
-      try {
-        await db.collection('players').add({
-          name: name,
-          kit: kit,
-          tier: tier,
-          tiers: [{ tier: tier, peakTier: tier }]
-        });
-
-        console.log(`✅ Player "${name}" added.`);
-        hideModal();
-        searchBar.value = '';
-        await refreshPlayers();
-      } catch (e) {
-        console.error("❌ Error adding player:", e);
-        alert('Error adding player.');
-      }
+      await db.collection('players').add({ name, tiers: [] });
+      hideModal();
+      searchBar.value = '';
+      await refreshPlayers();
     }
 
-    // Event listeners
-    searchBar.addEventListener('input', () => {
-      refreshPlayers(searchBar.value);
-    });
+    function openProfile(player) {
+      selectedPlayerId = player.id;
+      profile.style.display = 'block';
+      profileName.textContent = player.name;
+      profileSkin.src = `https://minotar.net/avatar/${player.name}/80`;
+      profileTiers.innerHTML = '';
 
+      (player.tiers || []).forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'tier-entry';
+        div.innerHTML = `
+          <div class="tier-icon" title="${t.kit}">${iconMap[t.kit] || '❓'}</div>
+          <input class="tier-value" value="${t.tier}" />
+          <select class="kit-select">
+            <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+            <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+            <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+          </select>
+          <button class="remove-tier">🗑️</button>
+        `;
+        // Make icons clickable to cycle through kits:
+        const iconDiv = div.querySelector('.tier-icon');
+        iconDiv.style.cursor = 'pointer';
+        iconDiv.onclick = () => {
+          const kits = Object.keys(iconMap);
+          const currentKit = div.querySelector('select').value;
+          let nextIndex = (kits.indexOf(currentKit) + 1) % kits.length;
+          div.querySelector('select').value = kits[nextIndex];
+          iconDiv.innerHTML = iconMap[kits[nextIndex]];
+          iconDiv.title = kits[nextIndex];
+        };
+
+        // Remove tier button
+        div.querySelector('.remove-tier').onclick = () => div.remove();
+
+        profileTiers.appendChild(div);
+      });
+    }
+
+    addTierButton.onclick = () => {
+      const div = document.createElement('div');
+      div.className = 'tier-entry';
+      div.innerHTML = `
+        <div class="tier-icon" title="CRYSTALS">${iconMap.CRYSTALS}</div>
+        <input class="tier-value" placeholder="Enter tier..." />
+        <select class="kit-select">
+          <option value="CRYSTALS" selected>CRYSTALS</option>
+          <option value="NODEBUFF">NODEBUFF</option>
+          <option value="GAPPLE">GAPPLE</option>
+        </select>
+        <button class="remove-tier">🗑️</button>
+      `;
+      // Make icon clickable to cycle kits
+      const iconDiv = div.querySelector('.tier-icon');
+      iconDiv.style.cursor = 'pointer';
+      iconDiv.onclick = () => {
+        const kits = Object.keys(iconMap);
+        const currentKit = div.querySelector('select').value;
+        let nextIndex = (kits.indexOf(currentKit) + 1) % kits.length;
+        div.querySelector('select').value = kits[nextIndex];
+        iconDiv.innerHTML = iconMap[kits[nextIndex]];
+        iconDiv.title = kits[nextIndex];
+      };
+      div.querySelector('.remove-tier').onclick = () => div.remove();
+
+      profileTiers.appendChild(div);
+    };
+
+    // Event listeners for modal
     addPlayerButton.addEventListener('click', showModal);
     cancelButton.addEventListener('click', hideModal);
-
-    doneButton.addEventListener('click', () => {
-      addPlayer(playerNameInput.value);
-    });
-
+    doneButton.addEventListener('click', () => addPlayer(playerNameInput.value));
     playerNameInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') addPlayer(playerNameInput.value);
     });
+    searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
 
-    // Initial load
+    // Initial fetch
     refreshPlayers();
   </script>
-
 </body>
-</html
+</html>

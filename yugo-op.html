@@ -347,43 +347,49 @@
       selectedPlayerId = player.id;
       profile.style.display = 'flex';
       profileName.textContent = player.name;
-      profileTiers.innerHTML = '';
+     function openProfile(player) {
+  selectedPlayerId = player.id;
+  profile.style.display = 'flex';
+  profileName.textContent = player.name;
+  profileTiers.innerHTML = '';
 
-// Group tiers by kit
-const kits = ['CRYSTALS', 'NODEBUFF', 'GAPPLE'];
-kits.forEach(kit => {
-  const kitBox = document.createElement('div');
-  kitBox.className = 'kit-box';
-  kitBox.style.marginBottom = '10px';
+  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/160`;
 
-  const icon = document.createElement('img');
-  icon.src = `images/${kit.toLowerCase()}.png`; // make sure icons are named crystals.png etc.
-  icon.alt = kit;
-  icon.style.width = '40px';
+  const kits = ['CRYSTALS', 'NODEBUFF', 'GAPPLE'];
+  kits.forEach(kit => {
+    const kitBox = document.createElement('div');
+    kitBox.className = 'kit-box';
+    kitBox.style.marginBottom = '10px';
+    kitBox.style.textAlign = 'center';
 
-  const tierList = document.createElement('div');
-  tierList.className = 'tier-list';
+    const icon = document.createElement('div');
+    icon.textContent = kit;
+    icon.style.fontWeight = 'bold';
+    icon.style.marginBottom = '4px';
 
-  // Add tiers for this kit
-  player.tiers?.filter(t => t.kit === kit).forEach(t => {
-    const entry = document.createElement('div');
-    entry.className = 'tier-entry';
-    entry.innerHTML = `
-      <input value="${t.tier}" />
-      <select>
-        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-      </select>
-      <button onclick="this.parentElement.remove()">🗑️</button>
-    `;
-    tierList.appendChild(entry);
+    const tierList = document.createElement('div');
+    tierList.className = 'tier-list';
+
+    (player.tiers || []).filter(t => t.kit === kit).forEach(t => {
+      const entry = document.createElement('div');
+      entry.className = 'tier-entry';
+      entry.innerHTML = `
+        <input value="${t.tier}" />
+        <select>
+          <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+          <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+          <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+        </select>
+        <button onclick="this.parentElement.remove()">🗑️</button>
+      `;
+      tierList.appendChild(entry);
+    });
+
+    kitBox.appendChild(icon);
+    kitBox.appendChild(tierList);
+    profileTiers.appendChild(kitBox);
   });
-
-  kitBox.appendChild(icon);
-  kitBox.appendChild(tierList);
-  profileTiers.appendChild(kitBox);
-});
+}
 
     async function refreshPlayers(filter = '') {
       let players = await fetchPlayers();

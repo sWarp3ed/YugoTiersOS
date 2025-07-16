@@ -593,6 +593,13 @@ cancelButton.onclick = hideModal;
 modalOverlay.onclick = e => {
   if (e.target === modalOverlay) hideModal();
 };
+function showModal() {
+  modalOverlay.style.display = 'block';
+}
+
+function hideModal() {
+  modalOverlay.style.display = 'none';
+}
 
 // Search bar filtering
 searchBar.oninput = () => {

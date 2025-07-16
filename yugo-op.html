@@ -132,6 +132,7 @@
       flex-direction: column;
       gap: 12px;
       font-size: 50px;
+      position: relative;
     
     }
 
@@ -182,6 +183,16 @@
         margin-bottom: 5px;
     }
 
+    #profile-skin {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  border: 2px solid #03dac5;
+}
+
   </style>
 </head>
 <body>
@@ -200,6 +211,7 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
+    <img id="profile-skin" alt="Player Skin" />
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
@@ -315,26 +327,29 @@
     }
 
     function openProfile(player) {
-      selectedPlayerId = player.id;
-      profile.style.display = 'flex';
-      profileName.textContent = player.name;
-      profileTiers.innerHTML = '';
+  selectedPlayerId = player.id;
+  profile.style.display = 'flex';
+  profileName.textContent = player.name;
+  profileTiers.innerHTML = '';
 
-      player.tiers?.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'tier-entry';
-        div.innerHTML = `
-          <input value="${t.tier}" />
-          <select>
-            <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-            <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-            <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-          </select>
-          <button onclick="this.parentElement.remove()">🗑️</button>
-        `;
-        profileTiers.appendChild(div);
-      });
-    }
+  // Set player skin image using Minotar API (80x80 px)
+  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
+
+  player.tiers?.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
+    div.innerHTML = `
+      <input value="${t.tier}" />
+      <select>
+        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+      </select>
+      <button onclick="this.parentElement.remove()">🗑️</button>
+    `;
+    profileTiers.appendChild(div);
+  });
+}
     function showPlayerProfile(player) {
         // Use Minotar API as placeholder skin viewer
     document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;

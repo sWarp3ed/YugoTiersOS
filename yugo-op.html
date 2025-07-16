@@ -227,6 +227,7 @@
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
     <div id="profile-tiers"></div>
+<button id="add-tier-button">➕ Add Tier</button>
   </div>
 
   <script>
@@ -249,8 +250,18 @@
   const profile = document.getElementById('player-profile');
   const profileName = document.getElementById('profile-name');
   const profileTiers = document.getElementById('profile-tiers');
+  const profileSkin = document.getElementById('profile-skin');
+  const saveTiersButton = document.getElementById('save-tiers-button');
+  const addTierBtn = document.getElementById('add-tier-button');
 
   let selectedPlayerId = null;
+
+  const iconMap = {
+    CRYSTALS: '🧪',
+    NODEBUFF: '🌀',
+    GAPPLE: '🍎'
+  };
+  const kits = Object.keys(iconMap);
 
   async function fetchPlayers() {
     const snapshot = await db.collection('players').get();
@@ -337,56 +348,65 @@
   }
 
   function openProfile(player) {
-  selectedPlayerId = player.id;
-  profile.style.display = 'flex';
-  profileName.textContent = player.name;
-  profileTiers.innerHTML = '';
+    selectedPlayerId = player.id;
+    profile.style.display = 'flex';
+    profileName.textContent = player.name;
+    profileTiers.innerHTML = '';
+    profileSkin.src = `https://minotar.net/avatar/${player.name}/80`;
 
-  // Set player skin image using Minotar API (80x80 px)
-  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
+    player.tiers?.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'tier-entry';
 
-  player.tiers?.forEach(t => {
-  const div = document.createElement('div');
-  div.className = 'tier-entry';
-  
-  const iconMap = {
-    CRYSTALS: 'https://mctiers.com/tier_icons/vanilla.svg',
-    NODEBUFF: '',
-    GAPPLE: ''
-  };
-
-  div.innerHTML = `
-    <div class="tier-icon" title="${t.kit}" data-kit="${t.kit}">
-      ${iconMap[t.kit] || '❓'}
-    </div>
-    <input class="tier-value" value="${t.tier}" />
-    <button onclick="this.parentElement.remove()">🗑️</button>
-  `;
-  profileTiers.appendChild(div);
-});
+      div.innerHTML = `
+        <div class="tier-icon" data-kit="${t.kit}" title="${t.kit}">${iconMap[t.kit] || '❓'}</div>
+        <input class="tier-value" value="${t.tier}" />
+        <button onclick="this.parentElement.remove()">🗑️</button>
+      `;
+      profileTiers.appendChild(div);
+    });
+  }
 
   function addTierEntry() {
-  const div = document.createElement('div');
-  div.className = 'tier-entry';
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
 
-  div.innerHTML = `
-    <div class="tier-icon" data-kit="CRYSTALS" title="CRYSTALS">🧪</div>
-    <input class="tier-value" placeholder="Enter tier..." />
-    <button onclick="this.parentElement.remove()">🗑️</button>
-  `;
-  profileTiers.appendChild(div);
-}
-
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '🗑️';
-    delBtn.onclick = () => div.remove();
-
-    div.appendChild(input);
-    div.appendChild(select);
-    div.appendChild(delBtn);
-
+    div.innerHTML = `
+      <div class="tier-icon" data-kit="CRYSTALS" title="CRYSTALS">${iconMap.CRYSTALS}</div>
+      <input class="tier-value" placeholder="Enter tier..." />
+      <button onclick="this.parentElement.remove()">🗑️</button>
+    `;
     profileTiers.appendChild(div);
   }
+
+  // Click icon to change kit
+  profileTiers.addEventListener('click', (e) => {
+    if (e.target.classList.contains('tier-icon')) {
+      let currentKit = e.target.dataset.kit;
+      let nextIndex = (kits.indexOf(currentKit) + 1) % kits.length;
+      let nextKit = kits[nextIndex];
+      e.target.dataset.kit = nextKit;
+      e.target.title = nextKit;
+      e.target.textContent = iconMap[nextKit];
+    }
+  });
+
+  // Save tiers to Firestore
+  saveTiersButton.addEventListener('click', async () => {
+    if (!selectedPlayerId) return;
+
+    const entries = profileTiers.querySelectorAll('.tier-entry');
+    const tiers = [];
+
+    entries.forEach(entry => {
+      const tier = entry.querySelector('.tier-value').value.trim();
+      const kit = entry.querySelector('.tier-icon').dataset.kit;
+      if (tier) tiers.push({ tier, kit });
+    });
+
+    await db.collection('players').doc(selectedPlayerId).update({ tiers });
+    alert('Tiers saved!');
+  });
 
   searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
   addPlayerButton.addEventListener('click', showModal);
@@ -395,6 +415,8 @@
   playerNameInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') addPlayer(playerNameInput.value);
   });
+
+  addTierBtn.addEventListener('click', addTierEntry);
 
   refreshPlayers();
 </script>

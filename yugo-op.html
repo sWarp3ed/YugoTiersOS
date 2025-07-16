@@ -186,8 +186,8 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  width: 180px;
-  height: 230px;
+  width: 80px;
+  height: 80px;
   border-radius: 10px;
   border: 2px solid #03dac5;
 }
@@ -196,7 +196,6 @@
 </head>
 <body>
   <input id="search-bar" placeholder="Search players..." />
-  <canvas id="skin-canvas" style="width: 200px; height: 300px;"></canvas>
   <img src="addplayer.webp" id="addplayer-button" alt="Add Player">
   <div id="player-list"></div>
 
@@ -211,7 +210,7 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
-    <div id="profile-skin" style="width:180px; height:230px; border-radius:10px; border:2px solid #03dac5;"></div>
+    <img id="profile-skin" alt="Player Skin" />
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
@@ -246,9 +245,6 @@
       const snapshot = await db.collection('players').get();
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
-
-    const skinViewerContainer = document.getElementById('profile-skin');
-let skinViewer = null;
 
     function renderPlayers(players) {
       playerList.innerHTML = '';
@@ -330,42 +326,13 @@ let skinViewer = null;
     }
 
     function openProfile(player) {
-  const profileView = document.getElementById('profile-view');
-  const playerNameEl = document.getElementById('profile-name');
-  const skinCanvas = document.getElementById('skin-canvas');
+  selectedPlayerId = player.id;
+  profile.style.display = 'flex';
+  profileName.textContent = player.name;
+  profileTiers.innerHTML = '';
 
-  profileView.style.display = 'block';
-  playerNameEl.textContent = player.name;
-
-  // Clear any existing skin viewer if needed
-  if (window.currentSkinViewer) {
-    window.currentSkinViewer.dispose();
-  }
-
-  // Initialize skinview3d
-  const skinViewer = new skinview3d.SkinViewer({
-    canvas: skinCanvas,
-    width: 200,
-    height: 300,
-    skin: `https://minotar.net/skin/${player.name}`
-  });
-
-  skinViewer.controls.enableZoom = false;
-  skinViewer.animation = new skinview3d.WalkingAnimation();
-  skinViewer.animation.speed = 1.2;
-
-  // Store globally so we can dispose it later
-  window.currentSkinViewer = skinViewer;
-
-  // Load tiers
-  const tiersList = document.getElementById('profile-tiers');
-  tiersList.innerHTML = '';
-  for (const tier of player.tiers) {
-    const li = document.createElement('li');
-    li.textContent = `${tier.kit}: ${tier.tier}`;
-    tiersList.appendChild(li);
-  }
-}
+  // Set player skin image using Minotar API (80x80 px)
+  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
   player.tiers?.forEach(t => {
     const div = document.createElement('div');
@@ -381,11 +348,10 @@ let skinViewer = null;
     `;
     profileTiers.appendChild(div);
   });
-
+}
     function showPlayerProfile(player) {
         // Use Minotar API as placeholder skin viewer
-    document.getElementById('profile-skin').src = `https://minotar.net/body/${player.name}/180`;
-
+    document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
     document.getElementById('player-profile').style.display = 'block';
   }

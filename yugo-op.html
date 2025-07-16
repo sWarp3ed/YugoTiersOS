@@ -325,38 +325,29 @@
   }
 
   function openProfile(player) {
-    selectedPlayerId = player.id;
-    profile.style.display = 'flex';
-    profileName.textContent = player.name;
-    profileTiers.innerHTML = '';
+  selectedPlayerId = player.id;
+  profile.style.display = 'flex';
+  profileName.textContent = player.name;
+  profileTiers.innerHTML = '';
 
-    (player.tiers || []).forEach(t => {
-      const div = document.createElement('div');
-      div.className = 'tier-entry';
+  // Set player skin image using Minotar API (80x80 px)
+  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
-      const input = document.createElement('input');
-      input.value = t.tier || '';
-
-      const select = document.createElement('select');
-      ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
-        const option = document.createElement('option');
-        option.value = kit;
-        option.textContent = kit;
-        if (t.kit === kit) option.selected = true;
-        select.appendChild(option);
-      });
-
-      const delBtn = document.createElement('button');
-      delBtn.textContent = '🗑️';
-      delBtn.onclick = () => div.remove();
-
-      div.appendChild(input);
-      div.appendChild(select);
-      div.appendChild(delBtn);
-
-      profileTiers.appendChild(div);
-    });
-  }
+  player.tiers?.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
+    div.innerHTML = `
+      <input value="${t.tier}" />
+      <select>
+        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+      </select>
+      <button onclick="this.parentElement.remove()">🗑️</button>
+    `;
+    profileTiers.appendChild(div);
+  });
+}
 
   function addTierEntry() {
     const div = document.createElement('div');

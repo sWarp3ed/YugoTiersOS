@@ -62,7 +62,7 @@
       const snapshot = await db.collection('players').get();
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (e) {
-      console.error(e);
+      console.error("❌ Error fetching players:", e);
       return [];
     }
   }
@@ -81,9 +81,12 @@
 
   async function refreshPlayers(filter = '') {
     let players = await fetchPlayers();
-    if(filter) {
-      players = players.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+    if (filter) {
+      players = players.filter(p =>
+        p.name.toLowerCase().includes(filter.toLowerCase())
+      );
     }
+    console.log(`🔁 Rendering ${players.length} players`);
     renderPlayers(players);
   }
 
@@ -105,7 +108,7 @@
     }
 
     const existingPlayers = await fetchPlayers();
-    if(existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+    if (existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
       alert('Player already exists!');
       return;
     }
@@ -115,10 +118,14 @@
         name: name,
         tiers: [{ tier: 'HT1', peakTier: 'HT1' }]
       });
+
+      console.log(`✅ Player "${name}" added.`);
+
       hideModal();
-      refreshPlayers(searchBar.value);
+      searchBar.value = ''; // Clear search to ensure new player shows up
+      await refreshPlayers();
     } catch (e) {
-      console.error(e);
+      console.error("❌ Error adding player:", e);
       alert('Error adding player.');
     }
   }
@@ -129,9 +136,13 @@
 
   addPlayerButton.addEventListener('click', showModal);
   cancelButton.addEventListener('click', hideModal);
-  doneButton.addEventListener('click', () => addPlayer(playerNameInput.value));
+
+  doneButton.addEventListener('click', () => {
+    addPlayer(playerNameInput.value);
+  });
+
   playerNameInput.addEventListener('keydown', e => {
-    if(e.key === 'Enter') {
+    if (e.key === 'Enter') {
       addPlayer(playerNameInput.value);
     }
   });

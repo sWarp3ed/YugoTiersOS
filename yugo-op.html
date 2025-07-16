@@ -173,6 +173,28 @@
       z-index: 999;
       opacity: 0.9;
     }
+
+
+   #tier-buttons button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-weight: bold;
+}
+
+#tier-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+#tier-buttons button.selected {
+  background-color: #00cc99;
+  color: white;
+  border-color: #00b386;
+}
+
   </style>
 </head>
 <body>
@@ -196,12 +218,39 @@
     <div id="profile-tiers"></div>
     <div>
       <img src="https://mctiers.com/tier_icons/vanilla.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-      <!-- Add more kit icons here -->
+      <img src="https://mctiers.com/tier_icons/axe.svg" class="kit-icon" onclick="openKitSettings('Axe')" />
+      <img src="https://mctiers.com/tier_icons/sword.svg" class="kit-icon" onclick="openKitSettings('Sword')" />
+      <img src="https://mctiers.com/tier_icons/uhc.svg" class="kit-icon" onclick="openKitSettings('Uhc')" />
+      <img src="https://mctiers.com/tier_icons/smp.svg" class="kit-icon" onclick="openKitSettings('Smp')" />
+      <img src="https://mctiers.com/tier_icons/nethop.svg" class="kit-icon" onclick="openKitSettings('Nethop')" />
+      <img src="https://mctiers.com/tier_icons/pot.svg" class="kit-icon" onclick="openKitSettings('DiamondPot')" />
+      <img src="https://subtiers.net/assets/dia_smp-523efa38.svg" class="kit-icon" onclick="openKitSettings('DiamondSmp')" />
+      <img src="https://mctiers.com/tier_icons/mace.svg" class="kit-icon" onclick="openKitSettings('Mace')" />
     </div>
   </div>
 
   <div id="kit-panel">
     <h2 id="kit-title">Kit Tier</h2>
+    <div id="tier-buttons" style="
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+">
+  <button onclick="selectTier('LT5')">LT5</button>
+  <button onclick="selectTier('LT4')">LT4</button>
+  <button onclick="selectTier('LT3')">LT3</button>
+  <button onclick="selectTier('LT2')">LT2</button>
+  <button onclick="selectTier('LT1')">LT1</button>
+  <button onclick="selectTier('Untiered')">T</button>
+  <button onclick="selectTier('HT1')">HT1</button>
+  <button onclick="selectTier('HT2')">HT2</button>
+  <button onclick="selectTier('HT3')">HT3</button>
+  <button onclick="selectTier('HT4')">HT4</button>
+  <button onclick="selectTier('HT5')">HT5</button>
+</div>
     <button onclick="closeKitSettings()">Close</button>
   </div>
 
@@ -336,6 +385,46 @@
     function closeKitSettings() {
       document.getElementById("kit-panel").style.display = "none";
     }
+
+    let selectedTier = null;
+
+function selectTier(tier) {
+  selectedTier = tier;
+  // Highlight selected button (optional)
+  document.querySelectorAll('#tier-buttons button').forEach(btn => {
+    btn.style.backgroundColor = btn.textContent === tier ? '#00cc99' : '';
+    btn.style.color = btn.textContent === tier ? 'white' : '';
+  });
+}
+
+function applySelectedTier() {
+  if (!selectedTier || !selectedPlayerId) return alert("Select a tier first.");
+
+  // Get current tiers from profile view
+  const currentTiers = [];
+  document.querySelectorAll('#profile-tiers .tier-entry').forEach(entry => {
+    const tierInput = entry.querySelector('input');
+    const kitSelect = entry.querySelector('select');
+    if (tierInput && kitSelect) {
+      currentTiers.push({
+        tier: tierInput.value,
+        kit: kitSelect.value
+      });
+    }
+  });
+
+  // Add selected tier with current kit
+  const kit = document.querySelector('#kit-title').textContent.split(" ")[0].toUpperCase();
+  currentTiers.push({ tier: selectedTier, kit });
+
+  // Update in Firebase
+  db.collection('players').doc(selectedPlayerId).update({ tiers: currentTiers })
+    .then(() => {
+      openProfile({ id: selectedPlayerId, name: profileName.textContent, tiers: currentTiers });
+      closeKitSettings();
+    });
+}
+
 
     // Event listeners
     addPlayerButton.onclick = showModal;

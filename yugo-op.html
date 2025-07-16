@@ -236,22 +236,25 @@
   opacity:0.9;
 }
 
- #tier-buttons {
-    background-color: #4c3e30;
-    color: white;
-    border: none;
-    padding: 10px 25px;
-    font-size: 1.2em;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    width: 32px;
-    display: flex;
-    gap: 10px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    height: 40px;
- }
+ #tier-buttons button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-weight: bold;
+}
+
+#tier-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+#tier-buttons button.selected {
+  background-color: #00cc99;
+  color: white;
+  border-color: #00b386;
+}
 
   </style>
 </head>
@@ -382,11 +385,16 @@
 
 function selectTier(tier) {
   selectedTier = tier;
-  // Highlight selected button (optional)
+
+  // Remove existing selection
   document.querySelectorAll('#tier-buttons button').forEach(btn => {
-    btn.style.backgroundColor = btn.textContent === tier ? '#00cc99' : '';
-    btn.style.color = btn.textContent === tier ? 'white' : '';
+    btn.classList.remove('selected');
   });
+
+  // Add selected class to clicked button
+  const selectedButton = Array.from(document.querySelectorAll('#tier-buttons button'))
+    .find(btn => btn.textContent === tier);
+  if (selectedButton) selectedButton.classList.add('selected');
 }
 
 function applySelectedTier() {

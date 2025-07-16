@@ -139,158 +139,162 @@
   </div>
 
   <script>
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
-    authDomain: "yugotiers-b297d.firebaseapp.com",
-    projectId: "yugotiers-b297d",
-  };
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
+      authDomain: "yugotiers-b297d.firebaseapp.com",
+      projectId: "yugotiers-b297d",
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  const searchBar = document.getElementById('search-bar');
-  const playerList = document.getElementById('player-list');
-  const addPlayerButton = document.getElementById('addplayer-button');
-  const modalOverlay = document.getElementById('modal-overlay');
-  const playerNameInput = document.getElementById('player-name-input');
-  const doneButton = document.getElementById('done-button');
-  const cancelButton = document.getElementById('cancel-button');
+    const searchBar = document.getElementById('search-bar');
+    const playerList = document.getElementById('player-list');
+    const addPlayerButton = document.getElementById('addplayer-button');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const playerNameInput = document.getElementById('player-name-input');
+    const kitInput = document.getElementById('kit-input');
+    const tierInput = document.getElementById('tier-input');
+    const doneButton = document.getElementById('done-button');
+    const cancelButton = document.getElementById('cancel-button');
 
-  // Fetch and render players
-  async function fetchPlayers() {
-    try {
-      const snapshot = await db.collection('players').get();
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-      console.error("❌ Error fetching players:", e);
-      return [];
+    // Fetch and render players
+    async function fetchPlayers() {
+      try {
+        const snapshot = await db.collection('players').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (e) {
+        console.error("❌ Error fetching players:", e);
+        return [];
+      }
     }
-  }
 
-  function renderPlayers(players) {
-    playerList.innerHTML = '';
-    players.forEach(p => {
-      const container = document.createElement('div');
-      container.style.display = 'flex';
-      container.style.justifyContent = 'space-between';
-      container.style.alignItems = 'center';
-      container.style.backgroundColor = '#1f1f1f';
-      container.style.padding = '8px';
-      container.style.borderRadius = '4px';
+    function renderPlayers(players) {
+  playerList.innerHTML = '';
+  players.forEach(p => {
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.justifyContent = 'space-between';
+    container.style.alignItems = 'center';
+    container.style.backgroundColor = '#1f1f1f';
+    container.style.padding = '8px';
+    container.style.borderRadius = '4px';
 
-      const link = document.createElement('a');
-      link.textContent = p.name;
-      link.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
-      link.target = '_blank';
-      link.className = 'player-link';
-      link.style.flex = '1';
+    const link = document.createElement('a');
+    link.textContent = p.name;
+    link.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
+    link.target = '_blank';
+    link.className = 'player-link';
+    link.style.flex = '1';
 
-      const removeBtn = document.createElement('button');
-      removeBtn.textContent = '🗑️';
-      removeBtn.style.marginLeft = '10px';
-      removeBtn.style.backgroundColor = '#cf6679';
-      removeBtn.style.border = 'none';
-      removeBtn.style.borderRadius = '4px';
-      removeBtn.style.color = 'black';
-      removeBtn.style.cursor = 'pointer';
-      removeBtn.style.padding = '4px 8px';
-      removeBtn.title = `Delete ${p.name}`;
-      removeBtn.onclick = () => deletePlayer(p.id, p.name);
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '🗑️';
+    removeBtn.style.marginLeft = '10px';
+    removeBtn.style.backgroundColor = '#cf6679';
+    removeBtn.style.border = 'none';
+    removeBtn.style.borderRadius = '4px';
+    removeBtn.style.color = 'black';
+    removeBtn.style.cursor = 'pointer';
+    removeBtn.style.padding = '4px 8px';
+    removeBtn.title = `Delete ${p.name}`;
+    removeBtn.onclick = () => deletePlayer(p.id, p.name);
 
-      container.appendChild(link);
-      container.appendChild(removeBtn);
-      playerList.appendChild(container);
+    container.appendChild(link);
+    container.appendChild(removeBtn);
+    playerList.appendChild(container);
+  });
+}
+
+    async function refreshPlayers(filter = '') {
+      let players = await fetchPlayers();
+      if (filter) {
+        players = players.filter(p =>
+          p.name.toLowerCase().includes(filter.toLowerCase())
+        );
+      }
+      renderPlayers(players);
+    }
+
+    function showModal() {
+      modalOverlay.style.display = 'flex';
+      playerNameInput.value = '';
+      kitInput.value = '';
+      tierInput.value = '';
+      playerNameInput.focus();
+    }
+
+    function hideModal() {
+      modalOverlay.style.display = 'none';
+    }
+
+    async function addPlayer(name) {
+      name = name.trim();
+      const kit = kitInput.value.trim().toUpperCase() || "CRYSTALS";
+      const tier = tierInput.value.trim().toUpperCase() || "HT1";
+
+      if (!name) {
+        alert('Player name cannot be empty.');
+        return;
+      }
+
+      const existingPlayers = await fetchPlayers();
+      if (existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        alert('Player already exists!');
+        return;
+      }
+
+      try {
+        await db.collection('players').add({
+          name: name,
+          kit: kit,
+          tier: tier,
+          tiers: [{ tier: tier, peakTier: tier }]
+        });
+
+        console.log(`✅ Player "${name}" added.`);
+        hideModal();
+        searchBar.value = '';
+        await refreshPlayers();
+      } catch (e) {
+        console.error("❌ Error adding player:", e);
+        alert('Error adding player.');
+      }
+    }
+
+    async function deletePlayer(id, name) {
+      const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
+      if (!confirmDelete) return;
+
+      try {
+        await db.collection('players').doc(id).delete();
+        console.log(`🗑️ Player "${name}" deleted.`);
+        await refreshPlayers(searchBar.value);
+      } catch (e) {
+        console.error("❌ Error deleting player:", e);
+        alert('Error deleting player.');
+      }
+    }
+
+    // Event listeners
+    searchBar.addEventListener('input', () => {
+      refreshPlayers(searchBar.value);
     });
-  }
 
-  async function refreshPlayers(filter = '') {
-    let players = await fetchPlayers();
-    if (filter) {
-      players = players.filter(p =>
-        p.name.toLowerCase().includes(filter.toLowerCase())
-      );
-    }
-    renderPlayers(players);
-  }
+    addPlayerButton.addEventListener('click', showModal);
+    cancelButton.addEventListener('click', hideModal);
 
-  function showModal() {
-    modalOverlay.style.display = 'flex';
-    playerNameInput.value = '';
-    playerNameInput.focus();
-  }
+    doneButton.addEventListener('click', () => {
+      addPlayer(playerNameInput.value);
+    });
 
-  function hideModal() {
-    modalOverlay.style.display = 'none';
-  }
+    playerNameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addPlayer(playerNameInput.value);
+    });
 
-  async function addPlayer(name) {
-    name = name.trim();
-    const kit = "CRYSTALS";
-    const tier = "HT1";
-
-    if (!name) {
-      alert('Player name cannot be empty.');
-      return;
-    }
-
-    const existingPlayers = await fetchPlayers();
-    if (existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-      alert('Player already exists!');
-      return;
-    }
-
-    try {
-      await db.collection('players').add({
-        name: name,
-        kit: kit,
-        tier: tier,
-        tiers: [{ tier: tier, peakTier: tier }]
-      });
-
-      console.log(`✅ Player "${name}" added.`);
-      hideModal();
-      searchBar.value = '';
-      await refreshPlayers();
-    } catch (e) {
-      console.error("❌ Error adding player:", e);
-      alert('Error adding player.');
-    }
-  }
-
-  async function deletePlayer(id, name) {
-    const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
-    if (!confirmDelete) return;
-
-    try {
-      await db.collection('players').doc(id).delete();
-      console.log(`🗑️ Player "${name}" deleted.`);
-      await refreshPlayers(searchBar.value);
-    } catch (e) {
-      console.error("❌ Error deleting player:", e);
-      alert('Error deleting player.');
-    }
-  }
-
-  // Event listeners
-  searchBar.addEventListener('input', () => {
-    refreshPlayers(searchBar.value);
-  });
-
-  addPlayerButton.addEventListener('click', showModal);
-  cancelButton.addEventListener('click', hideModal);
-
-  doneButton.addEventListener('click', () => {
-    addPlayer(playerNameInput.value);
-  });
-
-  playerNameInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') addPlayer(playerNameInput.value);
-  });
-
-  // Initial load
-  refreshPlayers();
-</script>
+    // Initial load
+    refreshPlayers();
+  </script>
 
 </body>
 </html

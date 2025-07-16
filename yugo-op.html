@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -8,7 +7,6 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://unpkg.com/skinview3d@2.7.3/dist/skinview3d.min.js"></script>
 
   <style>
     body {
@@ -121,8 +119,9 @@
 
     /* Profile on the right */
     #player-profile {
+      position: fixed;
       top: 70px;
-      right: 50px;
+      right: 200px;
       width: 1000px;
       height: 700px;
       background-color: #1f1f1f;
@@ -132,7 +131,7 @@
       flex-direction: column;
       gap: 12px;
       font-size: 50px;
-      position: fixed;
+    
     }
 
     .tier-entry {
@@ -146,12 +145,10 @@
       padding: 6px;
       border-radius: 4px;
       border: none;
-      font-size: 20px;
     }
 
     .tier-entry select {
       padding: 6px;
-      font-size: 18px;
     }
 
     .tier-entry button {
@@ -161,39 +158,34 @@
       padding: 4px 6px;
       cursor: pointer;
       color: black;
-      font-size: 20px;
     }
 
     #player-profile h2 {
       margin-top: 0;
-      font-size: 50px;
-      margin-bottom: 5px;
     }
 
     #profile-placement {
-      font-size: 20px;
-      line-height: 10px;
+
+        font-size: 20px;
+        line-height: 10px;
     }
 
     #profile-points {
-      font-size: 20px;
-      line-height: 15px;
+
+        font-size: 20px;
+        line-height: 15px;
     }
 
-    #skin-viewer {
-      border: 3px solid #03dac5;
-      border-radius: 15px;
-      background-color: #222;
-      margin-bottom: 20px;
-      cursor: grab;
-      width: 300px;
-      height: 400px;
+    #profile-name {
+
+        margin-bottom: 5px;
     }
+
   </style>
 </head>
 <body>
   <input id="search-bar" placeholder="Search players..." />
-  <img src="addplayer.webp" id="addplayer-button" alt="Add Player" />
+  <img src="addplayer.webp" id="addplayer-button" alt="Add Player">
   <div id="player-list"></div>
 
   <!-- Add Player Modal -->
@@ -207,7 +199,6 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
-    <div id="skin-viewer"></div>
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
@@ -216,213 +207,159 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
-      authDomain: "yugotiers-b297d.firebaseapp.com",
-      projectId: "yugotiers-b297d",
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
+    authDomain: "yugotiers-b297d.firebaseapp.com",
+    projectId: "yugotiers-b297d",
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    const searchBar = document.getElementById('search-bar');
-    const playerList = document.getElementById('player-list');
-    const addPlayerButton = document.getElementById('addplayer-button');
-    const modalOverlay = document.getElementById('modal-overlay');
-    const playerNameInput = document.getElementById('player-name-input');
-    const doneButton = document.getElementById('done-button');
-    const cancelButton = document.getElementById('cancel-button');
-    const profile = document.getElementById('player-profile');
-    const profileName = document.getElementById('profile-name');
-    const profileTiers = document.getElementById('profile-tiers');
+  const searchBar = document.getElementById('search-bar');
+  const playerList = document.getElementById('player-list');
+  const addPlayerButton = document.getElementById('addplayer-button');
+  const modalOverlay = document.getElementById('modal-overlay');
+  const playerNameInput = document.getElementById('player-name-input');
+  const doneButton = document.getElementById('done-button');
+  const cancelButton = document.getElementById('cancel-button');
+  const profile = document.getElementById('player-profile');
+  const profileName = document.getElementById('profile-name');
+  const profileTiers = document.getElementById('profile-tiers');
 
-    let selectedPlayerId = null;
+  let selectedPlayerId = null;
 
-    async function fetchPlayers() {
-      const snapshot = await db.collection('players').get();
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
+  async function fetchPlayers() {
+    const snapshot = await db.collection('players').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
 
-    function renderPlayers(players) {
-      playerList.innerHTML = '';
-      players.forEach(p => {
-        const container = document.createElement('div');
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-        container.style.backgroundColor = '#1f1f1f';
-        container.style.padding = '8px';
-        container.style.borderRadius = '4px';
+  function renderPlayers(players) {
+    playerList.innerHTML = '';
+    players.forEach(p => {
+      const container = document.createElement('div');
+      container.style.display = 'flex';
+      container.style.justifyContent = 'space-between';
+      container.style.alignItems = 'center';
+      container.style.backgroundColor = '#1f1f1f';
+      container.style.padding = '8px';
+      container.style.borderRadius = '4px';
 
-        const link = document.createElement('div');
-        link.textContent = p.name;
-        link.className = 'player-link';
-        link.style.flex = '1';
-        link.onclick = () => openProfile(p);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '🗑️';
-        removeBtn.style.marginLeft = '10px';
-        removeBtn.style.backgroundColor = '#cf6679';
-        removeBtn.style.border = 'none';
-        removeBtn.style.borderRadius = '4px';
-        removeBtn.style.color = 'black';
-        removeBtn.style.cursor = 'pointer';
-        removeBtn.style.padding = '4px 8px';
-        removeBtn.title = `Delete ${p.name}`;
-        removeBtn.onclick = (e) => {
-          e.stopPropagation();
-          deletePlayer(p.id, p.name);
-        };
-
-        container.appendChild(link);
-        container.appendChild(removeBtn);
-        playerList.appendChild(container);
-      });
-    }
-
-    // Initialize the 3D skin viewer in #skin-viewer div
-    const skinViewerContainer = document.getElementById('skin-viewer');
-
-    const viewer = new skinview3d.SkinViewer({
-      canvas: document.createElement('canvas'),
-      width: 300,
-      height: 400,
-      skin: `https://minotar.net/skin/Steve`, // default skin at start
-    });
-
-    skinViewerContainer.appendChild(viewer.canvas);
-
-    // Enable mouse drag rotation on the viewer container
-    let isDragging = false;
-    let lastX = 0;
-
-    skinViewerContainer.addEventListener('mousedown', e => {
-      isDragging = true;
-      lastX = e.clientX;
-      skinViewerContainer.style.cursor = 'grabbing';
-    });
-
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-      skinViewerContainer.style.cursor = 'grab';
-    });
-
-    document.addEventListener('mousemove', e => {
-      if (!isDragging) return;
-      const deltaX = e.clientX - lastX;
-      lastX = e.clientX;
-      viewer.camera.rotation.y += deltaX * 0.01; // rotate model horizontally
-    });
-
-    function openProfile(player) {
-      selectedPlayerId = player.id;
-      profile.style.display = 'flex';
-      profileName.textContent = player.name;
-      profileTiers.innerHTML = '';
-
-      // Load player's skin into the 3D viewer
-      viewer.loadSkin(`https://minotar.net/skin/${player.name}`);
-
-      // Add tier inputs for each tier entry
-      if (player.tiers && Array.isArray(player.tiers)) {
-        player.tiers.forEach(tierEntry => addTierEntry(tierEntry));
-      }
-
-      // Add an empty tier entry if no tiers exist
-      if (!player.tiers || player.tiers.length === 0) {
-        addTierEntry();
-      }
-    }
-
-    function addTierEntry(tierData = { tier: '', kit: '' }) {
-      const entryDiv = document.createElement('div');
-      entryDiv.className = 'tier-entry';
-
-      const tierInput = document.createElement('input');
-      tierInput.type = 'text';
-      tierInput.value = tierData.tier || '';
-      tierInput.placeholder = 'Tier (e.g., HT1, LT3)';
-      entryDiv.appendChild(tierInput);
-
-      const kitSelect = document.createElement('select');
-      const kits = ['CRYSTALS', 'OPS', 'KIT3', 'KIT4']; // example kits
-      kits.forEach(kit => {
-        const option = document.createElement('option');
-        option.value = kit;
-        option.textContent = kit;
-        if (kit === tierData.kit) option.selected = true;
-        kitSelect.appendChild(option);
-      });
-      entryDiv.appendChild(kitSelect);
+      const link = document.createElement('div');
+      link.textContent = p.name;
+      link.className = 'player-link';
+      link.style.flex = '1';
+      link.onclick = () => openProfile(p);
 
       const removeBtn = document.createElement('button');
-      removeBtn.textContent = '❌';
-      removeBtn.title = 'Remove this tier';
-      removeBtn.onclick = () => {
-        entryDiv.remove();
+      removeBtn.textContent = '🗑️';
+      removeBtn.style.marginLeft = '10px';
+      removeBtn.style.backgroundColor = '#cf6679';
+      removeBtn.style.border = 'none';
+      removeBtn.style.borderRadius = '4px';
+      removeBtn.style.color = 'black';
+      removeBtn.style.cursor = 'pointer';
+      removeBtn.style.padding = '4px 8px';
+      removeBtn.title = `Delete ${p.name}`;
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        deletePlayer(p.id, p.name);
       };
-      entryDiv.appendChild(removeBtn);
 
-      profileTiers.appendChild(entryDiv);
+      container.appendChild(link);
+      container.appendChild(removeBtn);
+      playerList.appendChild(container);
+    });
+  }
+
+  async function refreshPlayers(filter = '') {
+    let players = await fetchPlayers();
+    if (filter) {
+      players = players.filter(p =>
+        p.name.toLowerCase().includes(filter.toLowerCase())
+      );
+    }
+    renderPlayers(players);
+  }
+
+  function showModal() {
+    modalOverlay.style.display = 'flex';
+    playerNameInput.value = '';
+    playerNameInput.focus();
+  }
+
+  function hideModal() {
+    modalOverlay.style.display = 'none';
+  }
+
+  async function addPlayer(name) {
+    name = name.trim();
+    if (!name) return alert('Player name cannot be empty.');
+
+    const existing = await fetchPlayers();
+    if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+      return alert('Player already exists!');
     }
 
-    async function deletePlayer(playerId, playerName) {
-      if (confirm(`Are you sure you want to delete player ${playerName}?`)) {
-        await db.collection('players').doc(playerId).delete();
-        loadAndRenderPlayers();
-        if (selectedPlayerId === playerId) {
-          profile.style.display = 'none';
-          selectedPlayerId = null;
-        }
-      }
-    }
+    await db.collection('players').add({ name, tiers: [] });
+    hideModal();
+    searchBar.value = '';
+    await refreshPlayers();
+  }
 
-    addPlayerButton.onclick = () => {
-      modalOverlay.style.display = 'flex';
-      playerNameInput.value = '';
-      playerNameInput.focus();
-    };
+  async function deletePlayer(id, name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    await db.collection('players').doc(id).delete();
+    await refreshPlayers(searchBar.value);
+  }
 
-    cancelButton.onclick = () => {
-      modalOverlay.style.display = 'none';
-    };
+  function openProfile(player) {
+    selectedPlayerId = player.id;
+    profile.style.display = 'flex';
+    profileName.textContent = player.name;
+    profileTiers.innerHTML = '';
 
-    doneButton.onclick = async () => {
-      const name = playerNameInput.value.trim();
-      if (!name) {
-        alert('Please enter a player name');
-        return;
-      }
-      // Add new player to Firestore with empty tiers
-      await db.collection('players').add({
-        name: name,
-        tiers: []
-      });
-      modalOverlay.style.display = 'none';
-      loadAndRenderPlayers();
-    };
+    player.tiers?.forEach(t => {
+      const div = document.createElement('div');
+      div.className = 'tier-entry';
+      div.innerHTML = `
+        <input value="${t.tier}" />
+        <select>
+          <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+          <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+          <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+        </select>
+        <button onclick="this.parentElement.remove()">🗑️</button>
+      `;
+      profileTiers.appendChild(div);
+    });
+  }
 
-    // Search filtering
-    searchBar.oninput = () => {
-      const filter = searchBar.value.toLowerCase();
-      const playerDivs = playerList.querySelectorAll('.player-link');
-      playerDivs.forEach(div => {
-        if (div.textContent.toLowerCase().includes(filter)) {
-          div.parentElement.style.display = 'flex';
-        } else {
-          div.parentElement.style.display = 'none';
-        }
-      });
-    };
+  function addTierEntry() {
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
+    div.innerHTML = `
+      <input placeholder="Enter tier..." />
+      <select>
+        <option value="CRYSTALS">CRYSTALS</option>
+        <option value="NODEBUFF">NODEBUFF</option>
+        <option value="GAPPLE">GAPPLE</option>
+      </select>
+      <button onclick="this.parentElement.remove()">🗑️</button>
+    `;
+    profileTiers.appendChild(div);
+  }
 
-    async function loadAndRenderPlayers() {
-      const players = await fetchPlayers();
-      renderPlayers(players);
-    }
+  // Hook up UI events
+  searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
+  addPlayerButton.addEventListener('click', showModal);
+  cancelButton.addEventListener('click', hideModal);
+  doneButton.addEventListener('click', () => addPlayer(playerNameInput.value));
+  playerNameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') addPlayer(playerNameInput.value);
+  });
 
-    // Initial load
-    loadAndRenderPlayers();
-  </script>
+  refreshPlayers();
+</script>
 </body>
 </html>

@@ -441,6 +441,7 @@ function selectTier(tier) {
     btn.style.color = btn.textContent === tier ? 'white' : '';
   });
 }
+}
 
 function applySelectedTier() {
   if (!selectedTier || !selectedPlayerId) return alert("Select a tier first.");
@@ -471,7 +472,7 @@ function applySelectedTier() {
 }
 
 
-}
+
     // Event listeners
     addPlayerButton.onclick = showModal;
     cancelButton.onclick = hideModal;

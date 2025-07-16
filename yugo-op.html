@@ -207,19 +207,6 @@
   background-color: #45a049;
 }
 
-.kit-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.tier-list {
-  margin-top: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
   </style>
 </head>
 <body>
@@ -256,7 +243,7 @@
 
   <div id="kit-panel">
     <h2 id="kit-title">Kit Tier</h2>
-    <button onclick="applySelectedTier()">Apply Tier</button>
+    <button onclick="applySelectedTier()">Apply Tier</button>dsg
     <div id="tier-buttons" style="
   margin-top: 20px;
   display: grid;
@@ -347,49 +334,25 @@
       selectedPlayerId = player.id;
       profile.style.display = 'flex';
       profileName.textContent = player.name;
-     function openProfile(player) {
-  selectedPlayerId = player.id;
-  profile.style.display = 'flex';
-  profileName.textContent = player.name;
-  profileTiers.innerHTML = '';
+      profileTiers.innerHTML = '';
 
-  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/160`;
+      document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/160`;
 
-  const kits = ['CRYSTALS', 'NODEBUFF', 'GAPPLE'];
-  kits.forEach(kit => {
-    const kitBox = document.createElement('div');
-    kitBox.className = 'kit-box';
-    kitBox.style.marginBottom = '10px';
-    kitBox.style.textAlign = 'center';
-
-    const icon = document.createElement('div');
-    icon.textContent = kit;
-    icon.style.fontWeight = 'bold';
-    icon.style.marginBottom = '4px';
-
-    const tierList = document.createElement('div');
-    tierList.className = 'tier-list';
-
-    (player.tiers || []).filter(t => t.kit === kit).forEach(t => {
-      const entry = document.createElement('div');
-      entry.className = 'tier-entry';
-      entry.innerHTML = `
-        <input value="${t.tier}" />
-        <select>
-          <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-          <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-          <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-        </select>
-        <button onclick="this.parentElement.remove()">🗑️</button>
-      `;
-      tierList.appendChild(entry);
-    });
-
-    kitBox.appendChild(icon);
-    kitBox.appendChild(tierList);
-    profileTiers.appendChild(kitBox);
-  });
-}
+      player.tiers?.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'tier-entry';
+        div.innerHTML = `
+          <input value="${t.tier}" />
+          <select>
+            <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+            <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+            <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+          </select>
+          <button onclick="this.parentElement.remove()">🗑️</button>
+        `;
+        profileTiers.appendChild(div);
+      });
+    }
 
     async function refreshPlayers(filter = '') {
       let players = await fetchPlayers();
@@ -447,7 +410,6 @@ function selectTier(tier) {
     btn.style.color = btn.textContent === tier ? 'white' : '';
   });
 }
-}
 
 function applySelectedTier() {
   if (!selectedTier || !selectedPlayerId) return alert("Select a tier first.");
@@ -487,8 +449,7 @@ function applySelectedTier() {
 
     // Initial load
     refreshPlayers();
-    
-    </script>
+  </script>
 </body>
 </html>
 

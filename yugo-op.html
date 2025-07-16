@@ -1,9 +1,7 @@
-<!-- Save this as index.html or your main page -->
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yugo OPS</title>
 
   <!-- Firebase -->
@@ -13,15 +11,15 @@
   <style>
     body {
       background-image: url("https://picfiles.alphacoders.com/478/478314.png");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      margin: 0;
+      background-size: cover;         /* Cover entire screen */
+      background-position: center;    /* Center the image */
+      background-repeat: no-repeat;   /* Don't repeat the image */
+      margin: 0; 
       font-family: sans-serif;
       text-align: center;
-      padding: 20px;
-      color: #ccc;
-    }
+      padding: 20px;    
+      color:#ccc;                 /* Remove default spacing */
+      }
 
     #addplayer-button {
       position: absolute;
@@ -35,17 +33,20 @@
     }
 
     #player-list {
-      margin-top: 70px;
-      margin-left: 10px;
+      margin-top: 20px;
       display: flex;
       flex-direction: column;
       gap: 8px;
+      height: 90px;
+      width: 320px;
+      margin-top: 70px;
+      margin-left: 10px;
       max-width: 400px;
     }
 
     .player-link {
       text-decoration: none;
-      color: #fff;
+      color: #ffffff;
       background-color: #1f1f1f;
       padding: 8px;
       border-radius: 4px;
@@ -71,6 +72,7 @@
       width: 300px;
       height: 40px;
       transition: width 0.3s ease;
+      margin-bottom: 20px;
     }
 
     #search-bar:hover {
@@ -97,22 +99,30 @@
       width: 300px;
     }
 
-    #modal input, .tier-entry input {
+    #modal input {
       padding: 10px;
       border: none;
       border-radius: 4px;
     }
 
-    #done-button, #cancel-button, .tier-entry button {
+    #done-button, #cancel-button {
       padding: 8px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
 
-    #done-button { background-color: #03dac5; color: black; }
-    #cancel-button, .tier-entry button { background-color: #cf6679; color: black; }
+    #done-button {
+      background-color: #03dac5;
+      color: black;
+    }
 
+    #cancel-button {
+      background-color: #cf6679;
+      color: black;
+    }
+
+    /* Profile on the right */
     #player-profile {
       position: fixed;
       top: 70px;
@@ -126,9 +136,10 @@
       flex-direction: column;
       gap: 12px;
       font-size: 50px;
-      color: white;
+      color:white;
       opacity: 0.9;
       text-align: left;
+    
     }
 
     .tier-entry {
@@ -137,42 +148,94 @@
       gap: 10px;
     }
 
+    .tier-entry input {
+      flex: 1;
+      padding: 6px;
+      border-radius: 4px;
+      border: none;
+    }
+
     .tier-entry select {
       padding: 6px;
     }
 
-    #profile-skin {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 160px;
-      height: 160px;
-      border-radius: 10px;
-      border: 4px solid #464646;
-    }
-
-    .kit-icon {
-      width: 40px;
-      height: 40px;
-      margin-left: 50px;
+    .tier-entry button {
+      background-color: #cf6679;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 6px;
       cursor: pointer;
+      color: black;
     }
 
-    #kit-panel {
-      display: none;
-      position: fixed;
-      bottom: 175px;
-      right: 250px;
-      background-color: #2e2e2e;
-      border-radius: 12px;
-      padding: 20px;
-      width: 900px;
-      height: 260px;
-      color: white;
-      box-shadow: 0 0 10px rgba(0,0,0,0.6);
-      z-index: 999;
-      opacity: 0.9;
+    #player-profile h2 {
+      margin-top: 0;
     }
+
+    #profile-placement {
+
+        font-size: 20px;
+        line-height: 10px;
+    }
+
+    #profile-points {
+
+        font-size: 20px;
+        line-height: 15px;
+    }
+
+    #profile-name {
+
+        margin-bottom: 5px;
+    }
+
+    #profile-skin {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  border: 2px solid #03dac5;
+  border-color:#464646;
+  border-width: 4px;
+}
+
+ .profile-tiers {
+
+    margin-left: 50px;
+
+ }
+.kit-buttonn {
+
+    margin-left:50px;
+    width:40px;
+    height:40px;
+}
+
+.kit-icon {
+  width: 40px;
+  height: 40px;
+  margin-left: 50px;
+  cursor: pointer;
+}
+
+#kit-panel {
+  display: none;
+  position: fixed;
+  bottom: 175px;
+  right: 250px;
+  background-color: #2e2e2e;
+  border-radius: 12px;
+  padding: 20px;
+  width: 900px;
+  height: 260px;
+  color: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.6);
+  z-index: 999;
+  opacity:0.9;
+}
+
   </style>
 </head>
 <body>
@@ -193,6 +256,8 @@
   <div id="player-profile">
     <img id="profile-skin" alt="Player Skin" />
     <h2 id="profile-name">Player Name</h2>
+    <h3 id="profile-placement">Player placement</h3>
+    <h4 id="profile-points">Player points</h4>
     <div id="profile-tiers"></div>
     <div>
       <img src="https://mctiers.com/tier_icons/vanilla.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
@@ -205,153 +270,206 @@
       <img src="https://subtiers.net/assets/dia_smp-523efa38.svg" class="kit-icon" onclick="openKitSettings('DiamondSmp')" />
       <img src="https://mctiers.com/tier_icons/mace.svg" class="kit-icon" onclick="openKitSettings('Mace')" />
     </div>
-  </div>
+</div>
 
-  <div id="kit-panel">
-    <h2 id="kit-title">Kit Tier</h2>
-    <button onclick="closeKitSettings()">Close</button>
-  </div>
+<div id="kit-panel" class="player-profile">
+  <h2 id="kit-title">Kit Tier</h2>
+  <button onclick="closeKitSettings()">Close</button>
+</div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
-      authDomain: "yugotiers-b297d.firebaseapp.com",
-      projectId: "yugotiers-b297d",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  const firebaseConfig = {
+    apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
+    authDomain: "yugotiers-b297d.firebaseapp.com",
+    projectId: "yugotiers-b297d",
+  };
 
-    const searchBar = document.getElementById('search-bar');
-    const playerList = document.getElementById('player-list');
-    const addPlayerButton = document.getElementById('addplayer-button');
-    const modalOverlay = document.getElementById('modal-overlay');
-    const playerNameInput = document.getElementById('player-name-input');
-    const doneButton = document.getElementById('done-button');
-    const cancelButton = document.getElementById('cancel-button');
-    const profile = document.getElementById('player-profile');
-    const profileName = document.getElementById('profile-name');
-    const profileTiers = document.getElementById('profile-tiers');
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    let selectedPlayerId = null;
+  const searchBar = document.getElementById('search-bar');
+  const playerList = document.getElementById('player-list');
+  const addPlayerButton = document.getElementById('addplayer-button');
+  const modalOverlay = document.getElementById('modal-overlay');
+  const playerNameInput = document.getElementById('player-name-input');
+  const doneButton = document.getElementById('done-button');
+  const cancelButton = document.getElementById('cancel-button');
+  const profile = document.getElementById('player-profile');
+  const profileName = document.getElementById('profile-name');
+  const profileTiers = document.getElementById('profile-tiers');
 
-    async function fetchPlayers() {
-      const snapshot = await db.collection('players').get();
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  let selectedPlayerId = null;
+
+  async function fetchPlayers() {
+    const snapshot = await db.collection('players').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  function renderPlayers(players) {
+    playerList.innerHTML = '';
+    players.forEach(p => {
+      const container = document.createElement('div');
+      container.style.display = 'flex';
+      container.style.justifyContent = 'space-between';
+      container.style.alignItems = 'center';
+      container.style.backgroundColor = '#1f1f1f';
+      container.style.padding = '8px';
+      container.style.borderRadius = '4px';
+
+      const link = document.createElement('div');
+      link.textContent = p.name;
+      link.className = 'player-link';
+      link.style.flex = '1';
+      link.onclick = () => openProfile(p);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = '🗑️';
+      removeBtn.style.marginLeft = '10px';
+      removeBtn.style.backgroundColor = '#cf6679';
+      removeBtn.style.border = 'none';
+      removeBtn.style.borderRadius = '4px';
+      removeBtn.style.color = 'black';
+      removeBtn.style.cursor = 'pointer';
+      removeBtn.style.padding = '4px 8px';
+      removeBtn.title = `Delete ${p.name}`;
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        deletePlayer(p.id, p.name);
+      };
+
+      container.appendChild(link);
+      container.appendChild(removeBtn);
+      playerList.appendChild(container);
+    });
+  }
+
+  function openKitSettings(kitName) {
+  const panel = document.getElementById("kit-panel");
+  document.getElementById("kit-title").textContent = kitName + " Settings";
+  panel.style.display = "block";
+}
+
+function closeKitSettings() {
+  const panel = document.getElementById("kit-panel");
+  if (panel) panel.style.display = "none";
+}
+
+  async function refreshPlayers(filter = '') {
+    let players = await fetchPlayers();
+    if (filter) {
+      players = players.filter(p =>
+        p.name.toLowerCase().includes(filter.toLowerCase())
+      );
+    }
+    renderPlayers(players);
+  }
+
+  function showModal() {
+    modalOverlay.style.display = 'flex';
+    playerNameInput.value = '';
+    playerNameInput.focus();
+  }
+
+  function hideModal() {
+    modalOverlay.style.display = 'none';
+  }
+
+  async function addPlayer(name) {
+    name = name.trim();
+    if (!name) return alert('Player name cannot be empty.');
+
+    const existing = await fetchPlayers();
+    if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+      return alert('Player already exists!');
     }
 
-    function renderPlayers(players) {
-      playerList.innerHTML = '';
-      players.forEach(p => {
-        const container = document.createElement('div');
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-        container.style.backgroundColor = '#1f1f1f';
-        container.style.padding = '8px';
-        container.style.borderRadius = '4px';
+    await db.collection('players').add({ name, tiers: [] });
+    hideModal();
+    searchBar.value = '';
+    await refreshPlayers();
+  }
 
-        const link = document.createElement('div');
-        link.textContent = p.name;
-        link.className = 'player-link';
-        link.style.flex = '1';
-        link.onclick = () => openProfile(p);
+  async function deletePlayer(id, name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    await db.collection('players').doc(id).delete();
+    await refreshPlayers(searchBar.value);
+  }
 
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '🗑️';
-        removeBtn.style.backgroundColor = '#cf6679';
-        removeBtn.style.border = 'none';
-        removeBtn.style.borderRadius = '4px';
-        removeBtn.style.color = 'black';
-        removeBtn.style.cursor = 'pointer';
-        removeBtn.onclick = (e) => {
-          e.stopPropagation();
-          deletePlayer(p.id, p.name);
-        };
+  function openProfile(player) {
+  selectedPlayerId = player.id;
+  profile.style.display = 'flex';
+  profileName.textContent = player.name;
+  profileTiers.innerHTML = '';
 
-        container.appendChild(link);
-        container.appendChild(removeBtn);
-        playerList.appendChild(container);
-      });
-    }
+  // Set player skin image using Minotar API (80x80 px)
+  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
-    function openProfile(player) {
-      selectedPlayerId = player.id;
-      profile.style.display = 'flex';
-      profileName.textContent = player.name;
-      profileTiers.innerHTML = '';
+  player.tiers?.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
+    div.innerHTML = `
+      <input value="${t.tier}" />
+      <select>
+        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
+        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
+        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
+      </select>
+      <button onclick="this.parentElement.remove()">🗑️</button>
+    `;
+    profileTiers.appendChild(div);
+  });
+}
+function openPopup() {
+  document.getElementById("kit-settings-panel").style.display = "flex";
+}
 
-      document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/160`;
+function closeKitSettings() {
+  document.getElementById("kit-settings-panel").style.display = "none";
+}
 
-      player.tiers?.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'tier-entry';
-        div.innerHTML = `
-          <input value="${t.tier}" />
-          <select>
-            <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-            <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-            <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-          </select>
-          <button onclick="this.parentElement.remove()">🗑️</button>
-        `;
-        profileTiers.appendChild(div);
-      });
-    }
+function openPopup() {
+    document.getElementById("popup").style.display = "flex";
+  }
 
-    async function refreshPlayers(filter = '') {
-      let players = await fetchPlayers();
-      if (filter) {
-        players = players.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
-      }
-      renderPlayers(players);
-    }
+  function closePopup() {
+    document.getElementById("popup").style.display = "none";
+  }
 
-    function showModal() {
-      modalOverlay.style.display = 'flex';
-      playerNameInput.value = '';
-      playerNameInput.focus();
-    }
+  function addTierEntry() {
+    const div = document.createElement('div');
+    div.className = 'tier-entry';
 
-    function hideModal() {
-      modalOverlay.style.display = 'none';
-    }
+    const input = document.createElement('input');
+    input.placeholder = 'Enter tier...';
 
-    async function addPlayer(name) {
-      name = name.trim();
-      if (!name) return alert('Player name cannot be empty.');
-      const existing = await fetchPlayers();
-      if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-        return alert('Player already exists!');
-      }
-      await db.collection('players').add({ name, tiers: [] });
-      hideModal();
-      searchBar.value = '';
-      await refreshPlayers();
-    }
+    const select = document.createElement('select');
+    ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
+      const option = document.createElement('option');
+      option.value = kit;
+      option.textContent = kit;
+      select.appendChild(option);
+    });
 
-    async function deletePlayer(id, name) {
-      if (!confirm(`Delete "${name}"?`)) return;
-      await db.collection('players').doc(id).delete();
-      await refreshPlayers(searchBar.value);
-    }
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '🗑️';
+    delBtn.onclick = () => div.remove();
 
-    function openKitSettings(kitName) {
-      document.getElementById("kit-title").textContent = kitName + " Settings";
-      document.getElementById("kit-panel").style.display = "block";
-    }
+    div.appendChild(input);
+    div.appendChild(select);
+    div.appendChild(delBtn);
 
-    function closeKitSettings() {
-      document.getElementById("kit-panel").style.display = "none";
-    }
+    profileTiers.appendChild(div);
+  }
 
-    // Event listeners
-    addPlayerButton.onclick = showModal;
-    cancelButton.onclick = hideModal;
-    doneButton.onclick = () => addPlayer(playerNameInput.value);
-    searchBar.oninput = () => refreshPlayers(searchBar.value);
+  searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
+  addPlayerButton.addEventListener('click', showModal);
+  cancelButton.addEventListener('click', hideModal);
+  doneButton.addEventListener('click', () => addPlayer(playerNameInput.value));
+  playerNameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') addPlayer(playerNameInput.value);
+  });
 
-    // Initial load
-    refreshPlayers();
-  </script>
+  refreshPlayers();
+</script>
 </body>
 </html>

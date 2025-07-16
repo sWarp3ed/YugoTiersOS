@@ -218,7 +218,7 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
-    <img id="profile-skin" alt="Player Skin" />
+    <img id="profile-skin" width="180" height="180" />
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
@@ -365,12 +365,6 @@
     profileTiers.appendChild(div);
   });
 }
-    function showPlayerProfile(player) {
-        // Use Minotar API as placeholder skin viewer
-    document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
-
-    document.getElementById('player-profile').style.display = 'block';
-  }
 
     function addTierEntry() {
       const div = document.createElement('div');

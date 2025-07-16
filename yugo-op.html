@@ -413,19 +413,33 @@
   });
 }
 
-const kitButton = document.querySelector('.kit-button');
-  const popup = document.getElementById('kit-popup');
+const popup = document.getElementById('kit-popup');
   const closeBtn = document.querySelector('.close-btn');
+  const kitDescription = document.getElementById('kit-description');
 
-  kitButton.addEventListener('click', () => {
-    popup.style.display = 'block';
+  // Add click event to all buttons
+  document.querySelectorAll('.kit-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const kit = button.getAttribute('data-kit');
+
+      // Optional: change popup content based on the kit
+      if (kit === 'kit1') {
+        kitDescription.textContent = 'This is Vanilla OP kit.';
+      } else if (kit === 'kit2') {
+        kitDescription.textContent = 'This is Crystal OP kit.';
+      } else {
+        kitDescription.textContent = 'Unknown kit.';
+      }
+
+      popup.style.display = 'block';
+    });
   });
 
+  // Close popup
   closeBtn.addEventListener('click', () => {
     popup.style.display = 'none';
   });
 
-  // Optional: close when clicking outside the popup
   window.addEventListener('click', (e) => {
     if (e.target === popup) {
       popup.style.display = 'none';

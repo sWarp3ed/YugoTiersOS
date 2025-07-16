@@ -30,14 +30,12 @@
     }
 
     #player-list {
-      margin-top: 20px;
+      margin-top: 70px;
+      margin-left: 10px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      height: 90px;
-      width: 320px;
-      margin-top: 70px;
-      margin-left: 10px;
+      height: auto;
       max-width: 400px;
     }
 
@@ -117,6 +115,25 @@
     #search-bar:hover {
       width: 330px;
     }
+
+    /* Profile panel */
+    #player-profile {
+      display: none;
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #292929;
+      border-radius: 10px;
+      width: 400px;
+    }
+
+    #player-profile h2 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    #player-profile img {
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -125,6 +142,19 @@
   <img src="addplayer.webp" id="addplayer-button" alt="Add Player">
 
   <div id="player-list"></div>
+
+  <!-- Profile panel -->
+  <div id="player-profile">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 id="profile-name"></h2>
+      <img id="profile-skin" src="" alt="Skin" style="width: 80px; height: 80px;" />
+    </div>
+    <div style="margin-top: 20px;">
+      <p><strong>Kit:</strong> <span id="profile-kit">-</span></p>
+      <p><strong>Tier:</strong> <span id="profile-tier">-</span></p>
+      <p><strong>All Tiers:</strong> <span id="profile-tiers">-</span></p>
+    </div>
+  </div>
 
   <!-- Modal -->
   <div id="modal-overlay">
@@ -176,10 +206,13 @@
 
       const link = document.createElement('a');
       link.textContent = p.name;
-      link.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
-      link.target = '_blank';
+      link.href = '#';
       link.className = 'player-link';
       link.style.flex = '1';
+      link.onclick = (e) => {
+        e.preventDefault();
+        showPlayerProfile(p);
+      };
 
       const removeBtn = document.createElement('button');
       removeBtn.textContent = '🗑️';
@@ -197,6 +230,20 @@
       container.appendChild(removeBtn);
       playerList.appendChild(container);
     });
+  }
+
+  function showPlayerProfile(player) {
+    document.getElementById('profile-name').textContent = player.name;
+    document.getElementById('profile-kit').textContent = player.kit || 'Not set';
+    document.getElementById('profile-tier').textContent = player.tier || 'Not set';
+    document.getElementById('profile-tiers').textContent = player.tiers && player.tiers.length
+      ? player.tiers.join(', ')
+      : 'None';
+
+    // Use Minotar API as placeholder skin viewer
+    document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
+
+    document.getElementById('player-profile').style.display = 'block';
   }
 
   async function refreshPlayers(filter = '') {

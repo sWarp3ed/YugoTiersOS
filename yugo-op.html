@@ -19,13 +19,15 @@
     }
 
     #addplayer-button {
-      margin-left: 100px;
-      padding: 8px 12px;
-      background-color: #03dac5;
-      border: none;
-      color: #000;
+      position: absolute;
+      bottom: 80px;
+      left: 35px;
+      background-color: greenyellow;
+      border-radius: 10px;
+      height: 65px;
+      width: 65px;
       cursor: pointer;
-      border-radius: 4px;
+      
     }
 
     #player-list {
@@ -121,7 +123,7 @@
 <body>
 
   <input id="search-bar" placeholder="Search players..." />
-  <button id="addplayer-button">Add Player</button>
+  <button id="addplayer-button"><img src="addplayer.webp" id="addplayer-button" class="addplayer-button" alt="Add Player"></button>
 
   <div id="player-list"></div>
 

@@ -5,202 +5,238 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yugotiers</title>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<script>
-  const tierPoints = {
-    HT1: 60, LT1: 44, HT2: 28, LT2: 16,
-    HT3: 10, LT3: 6, HT4: 4, LT4: 3,
-    HT5: 2, LT5: 1,
-    RHT1: 60, RLT1: 44, RHT2: 28, RLT2: 16,
-    RHT3: 10, RLT3: 6, RHT4: 4, RLT4: 3,
-    RHT5: 2, RLT5: 1,
-  };
+  <!-- Styling -->
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: #fff;
+      padding: 20px;
+    }
 
-  const iconURLs = {
-    SWORD: 'https://mctiers.com/tier_icons/sword.svg',
-    AXE: 'https://mctiers.com/tier_icons/axe.svg',
-    MACE: 'https://mctiers.com/tier_icons/mace.svg',
-    DIASMP: 'https://subtiers.net/assets/dia_smp-523efa38.svg',
-    CRYSTALS: 'https://mctiers.com/tier_icons/vanilla.svg',
-    NETHPOT: 'https://mctiers.com/tier_icons/nethop.svg',
-    DIAMONDPOT: 'https://mctiers.com/tier_icons/pot.svg',
-    UHC: 'https://mctiers.com/tier_icons/uhc.svg',
-    SMP: 'https://mctiers.com/tier_icons/smp.svg',
-  };
+    #search-bar {
+      padding: 8px;
+      margin-bottom: 12px;
+      width: 200px;
+      border-radius: 4px;
+      border: none;
+    }
 
-  let topPlayers = [];  // Store the top 10 players
+    #addplayer-button {
+      margin-left: 10px;
+      padding: 8px 12px;
+      background-color: #03dac5;
+      border: none;
+      color: #000;
+      cursor: pointer;
+      border-radius: 4px;
+    }
 
-  // Firebase config - REPLACE with your actual config
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",  // for Realtime DB
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
+    #player-list {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-  // Initialize Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    .player-link {
+      text-decoration: none;
+      color: #bb86fc;
+      background-color: #1f1f1f;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
 
-  // Fetch player data from Firebase Realtime Database
-  db.ref('players').once('value').then(snapshot => {
-    let playersData = snapshot.val();
+    .player-link:hover {
+      background-color: #2c2c2c;
+    }
 
-    // If playersData is an object, convert to array
-    let players = [];
-    if (playersData) {
-      if (Array.isArray(playersData)) {
-        players = playersData;
-      } else {
-        players = Object.values(playersData);
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #modal {
+      background-color: #1f1f1f;
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+
+    #modal input {
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+    }
+
+    #done-button, #cancel-button {
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #done-button {
+      background-color: #03dac5;
+      color: black;
+    }
+
+    #cancel-button {
+      background-color: #cf6679;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+  <input id="search-bar" placeholder="Search players..." />
+  <button id="addplayer-button">Add Player</button>
+
+  <div id="player-list"></div>
+
+  <!-- Modal for adding player -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <input id="player-name-input" placeholder="Enter player name" />
+      <input id="kit-input" placeholder="Enter kit (e.g. CRYSTALS)" />
+      <input id="tier-input" placeholder="Enter tier (e.g. HT1)" />
+      <button id="done-button">Add</button>
+      <button id="cancel-button">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
+      authDomain: "yugotiers-b297d.firebaseapp.com",
+      projectId: "yugotiers-b297d",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const searchBar = document.getElementById('search-bar');
+    const playerList = document.getElementById('player-list');
+    const addPlayerButton = document.getElementById('addplayer-button');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const playerNameInput = document.getElementById('player-name-input');
+    const kitInput = document.getElementById('kit-input');
+    const tierInput = document.getElementById('tier-input');
+    const doneButton = document.getElementById('done-button');
+    const cancelButton = document.getElementById('cancel-button');
+
+    // Fetch and render players
+    async function fetchPlayers() {
+      try {
+        const snapshot = await db.collection('players').get();
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (e) {
+        console.error("❌ Error fetching players:", e);
+        return [];
       }
     }
 
-    // Now your existing code adapted to use `players` from Firebase:
-    const playerList = document.getElementById('player-list');
-
-    // Sort players based on their total points (highest first)
-    players.sort((a, b) => {
-      const calculateTotalPoints = (player) => {
-        let totalPoints = 0;
-        player.tiers.forEach(tier => {
-          const current = tier.tier;
-          const peak = tier.peakTier;
-          const usedTier = peak || current;
-          totalPoints += tierPoints[usedTier] || 0;
-        });
-        return totalPoints;
-      };
-
-      const totalPointsA = calculateTotalPoints(a);
-      const totalPointsB = calculateTotalPoints(b);
-
-      return totalPointsB - totalPointsA; // Sort descending
-    });
-
-    // Assign placements
-    players.forEach((player, index) => {
-      player.placement = index + 1;
-    });
-
-    topPlayers = players.slice(0, 10);
-
-    const renderPlayers = (playersToRender) => {
+    function renderPlayers(players) {
       playerList.innerHTML = '';
-
-      playersToRender.forEach((player) => {
-        let playerDiv = document.createElement('div');
-        playerDiv.classList.add('player-link');
-
-        let playerBox = document.createElement('div');
-        playerBox.classList.add('player');
-
-        let leftSide = document.createElement('div');
-        leftSide.classList.add('left-side');
-
-        let playerName = document.createElement('h2');
-        if (player.name === "sWarped") {
-          playerName.style.color = "magenta";
-        } else if (player.placement === 1) {
-          playerName.classList.add('first-place');
-        } else if (player.placement === 2) {
-          playerName.classList.add('second-place');
-        } else if (player.placement === 3) {
-          playerName.classList.add('third-place');
-        } else {
-          playerName.classList.add('other-players');
-        }
-
-        playerName.textContent = player.name;
-        leftSide.appendChild(playerName);
-
-        player.tiers.sort((a, b) => {
-          const tierOrder = {
-            'HT1': 1, 'LT1': 2, 'HT2': 3, 'LT2': 4,
-            'HT3': 5, 'LT3': 6, 'HT4': 7, 'LT4': 8,
-            'HT5': 9, 'LT5': 10
-          };
-          const isRetired = (tier) => tier.startsWith("RLT") || tier.startsWith("RHT");
-          if (isRetired(a.tier) && !isRetired(b.tier)) return 1;
-          if (!isRetired(a.tier) && isRetired(b.tier)) return -1;
-          return (tierOrder[a.tier] || 999) - (tierOrder[b.tier] || 999);
-        });
-
-        let totalPoints = 0;
-        let kitsUsed = new Set();
-
-        let rightSide = document.createElement('div');
-        rightSide.classList.add('right-side');
-
-        player.tiers.forEach(tier => {
-          const kit = tier.kit;
-          if (kitsUsed.has(kit)) return;
-          kitsUsed.add(kit);
-
-          let tierDiv = document.createElement('div');
-          tierDiv.classList.add('tier', tier.tier);
-
-          let tooltip = document.createElement('div');
-          tooltip.classList.add('tooltip');
-
-          const current = tier.tier;
-          const peak = tier.peakTier;
-          const usedTier = peak || current;
-          const points = tierPoints[usedTier] || 0;
-          totalPoints += points;
-
-          tooltip.textContent = `${peak ? "Peak Tier" : "Current Tier"}: ${usedTier} — ${points} bodova`;
-          tierDiv.appendChild(tooltip);
-
-          let icon = document.createElement('img');
-          icon.src = iconURLs[kit] || '';
-          icon.alt = `${kit} icon`;
-          tierDiv.appendChild(icon);
-
-          let tierText = document.createElement('span');
-          tierText.textContent = current;
-          tierDiv.appendChild(tierText);
-
-          rightSide.appendChild(tierDiv);
-        });
-
-        let playerInfo = document.createElement('div');
-        playerInfo.classList.add('info');
-        playerInfo.innerHTML = `Mjesto: #${player.placement || 'N/A'}<br>Bodovi: ${totalPoints}`;
-        leftSide.appendChild(playerInfo);
-
-        playerBox.appendChild(leftSide);
-        playerBox.appendChild(rightSide);
-        playerDiv.appendChild(playerBox);
-
-        playerDiv.href = `/player/${player.name.toLowerCase().replace(/\s+/g, '-')}`;
-        playerList.appendChild(playerDiv);
+      players.forEach(p => {
+        const a = document.createElement('a');
+        a.textContent = `${p.name} [${p.kit} - ${p.tier}]`;
+        a.href = `https://crystals.gg/player/${encodeURIComponent(p.name)}`;
+        a.target = '_blank';
+        a.className = 'player-link';
+        playerList.appendChild(a);
       });
-    };
+    }
 
-    // Initially render top players
-    renderPlayers(topPlayers);
-
-    // Search functionality
-    const searchBar = document.getElementById('search-bar');
-    searchBar.addEventListener('input', () => {
-      const searchQuery = searchBar.value.toLowerCase();
-
-      if (searchQuery === '') {
-        renderPlayers(topPlayers);
-      } else {
-        const filteredPlayers = players.filter(player =>
-          player.name.toLowerCase().includes(searchQuery)
+    async function refreshPlayers(filter = '') {
+      let players = await fetchPlayers();
+      if (filter) {
+        players = players.filter(p =>
+          p.name.toLowerCase().includes(filter.toLowerCase())
         );
-        renderPlayers(filteredPlayers);
       }
+      renderPlayers(players);
+    }
+
+    function showModal() {
+      modalOverlay.style.display = 'flex';
+      playerNameInput.value = '';
+      kitInput.value = '';
+      tierInput.value = '';
+      playerNameInput.focus();
+    }
+
+    function hideModal() {
+      modalOverlay.style.display = 'none';
+    }
+
+    async function addPlayer(name) {
+      name = name.trim();
+      const kit = kitInput.value.trim().toUpperCase() || "CRYSTALS";
+      const tier = tierInput.value.trim().toUpperCase() || "HT1";
+
+      if (!name) {
+        alert('Player name cannot be empty.');
+        return;
+      }
+
+      const existingPlayers = await fetchPlayers();
+      if (existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        alert('Player already exists!');
+        return;
+      }
+
+      try {
+        await db.collection('players').add({
+          name: name,
+          kit: kit,
+          tier: tier,
+          tiers: [{ tier: tier, peakTier: tier }]
+        });
+
+        console.log(`✅ Player "${name}" added.`);
+        hideModal();
+        searchBar.value = '';
+        await refreshPlayers();
+      } catch (e) {
+        console.error("❌ Error adding player:", e);
+        alert('Error adding player.');
+      }
+    }
+
+    // Event listeners
+    searchBar.addEventListener('input', () => {
+      refreshPlayers(searchBar.value);
     });
-  });
-</script>
+
+    addPlayerButton.addEventListener('click', showModal);
+    cancelButton.addEventListener('click', hideModal);
+
+    doneButton.addEventListener('click', () => {
+      addPlayer(playerNameInput.value);
+    });
+
+    playerNameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addPlayer(playerNameInput.value);
+    });
+
+    // Initial load
+    refreshPlayers();
+  </script>
+
 </body>
-</html>
+</html

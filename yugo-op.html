@@ -319,18 +319,30 @@
     profileName.textContent = player.name;
     profileTiers.innerHTML = '';
 
-    player.tiers?.forEach(t => {
+    (player.tiers || []).forEach(t => {
       const div = document.createElement('div');
       div.className = 'tier-entry';
-      div.innerHTML = `
-        <input value="${t.tier}" />
-        <select>
-          <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-          <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-          <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-        </select>
-        <button onclick="this.parentElement.remove()">🗑️</button>
-      `;
+
+      const input = document.createElement('input');
+      input.value = t.tier || '';
+
+      const select = document.createElement('select');
+      ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
+        const option = document.createElement('option');
+        option.value = kit;
+        option.textContent = kit;
+        if (t.kit === kit) option.selected = true;
+        select.appendChild(option);
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '🗑️';
+      delBtn.onclick = () => div.remove();
+
+      div.appendChild(input);
+      div.appendChild(select);
+      div.appendChild(delBtn);
+
       profileTiers.appendChild(div);
     });
   }
@@ -338,19 +350,29 @@
   function addTierEntry() {
     const div = document.createElement('div');
     div.className = 'tier-entry';
-    div.innerHTML = `
-      <input placeholder="Enter tier..." />
-      <select>
-        <option value="CRYSTALS">CRYSTALS</option>
-        <option value="NODEBUFF">NODEBUFF</option>
-        <option value="GAPPLE">GAPPLE</option>
-      </select>
-      <button onclick="this.parentElement.remove()">🗑️</button>
-    `;
+
+    const input = document.createElement('input');
+    input.placeholder = 'Enter tier...';
+
+    const select = document.createElement('select');
+    ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
+      const option = document.createElement('option');
+      option.value = kit;
+      option.textContent = kit;
+      select.appendChild(option);
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '🗑️';
+    delBtn.onclick = () => div.remove();
+
+    div.appendChild(input);
+    div.appendChild(select);
+    div.appendChild(delBtn);
+
     profileTiers.appendChild(div);
   }
 
-  // Hook up UI events
   searchBar.addEventListener('input', () => refreshPlayers(searchBar.value));
   addPlayerButton.addEventListener('click', showModal);
   cancelButton.addEventListener('click', hideModal);

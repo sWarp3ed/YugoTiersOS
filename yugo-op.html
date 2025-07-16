@@ -211,7 +211,7 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
-    <img id="profile-skin" alt="Player Skin" />
+    <div id="profile-skin" style="width:180px; height:230px; border-radius:10px; border:2px solid #03dac5;"></div>
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
@@ -246,6 +246,9 @@
       const snapshot = await db.collection('players').get();
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
+
+    const skinViewerContainer = document.getElementById('profile-skin');
+let skinViewer = null;
 
     function renderPlayers(players) {
       playerList.innerHTML = '';
@@ -333,7 +336,20 @@
   profileTiers.innerHTML = '';
 
   // Set player skin image using Minotar API (80x80 px)
-  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
+  if (skinViewer) {
+  skinViewer.destroy();
+}
+
+skinViewer = new skinview3d.SkinViewer({
+  canvas: null,
+  width: 180,
+  height: 230,
+  container: skinViewerContainer,
+  skin: `https://minotar.net/skin/${player.name}`
+});
+
+skinViewer.animation = 'idle'; // optional: 'idle' or 'walk' etc
+skinViewer.playerSkin.url = `https://minotar.net/skin/${player.name}`;
 
   player.tiers?.forEach(t => {
     const div = document.createElement('div');

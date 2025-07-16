@@ -335,6 +335,12 @@
         profileTiers.appendChild(div);
       });
     }
+    function showPlayerProfile(player) {
+        // Use Minotar API as placeholder skin viewer
+    document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
+
+    document.getElementById('player-profile').style.display = 'block';
+  }
 
     function addTierEntry() {
       const div = document.createElement('div');

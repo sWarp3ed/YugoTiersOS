@@ -226,9 +226,7 @@
     <h2 id="profile-name">Player Name</h2>
     <h3 id="profile-placement">Player placement</h3>
     <h4 id="profile-points">Player points</h4>
-    <div id="profile-tiers">
-      <a href="cpvptierlist.html" class="kit-button" data-kit="kit1"><img src="https://mctiers.com/tier_icons/vanilla.svg" width="40" height="40" alt="Netherite OP"></a>
-    </div>
+    <div id="profile-tiers"></div>
   </div>
 
   <script>
@@ -348,35 +346,36 @@
   document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
   player.tiers?.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'tier-entry';
-    div.innerHTML = `
-      <input value="${t.tier}" />
-      <select>
-        <option value="CRYSTALS" ${t.kit === 'CRYSTALS' ? 'selected' : ''}>CRYSTALS</option>
-        <option value="NODEBUFF" ${t.kit === 'NODEBUFF' ? 'selected' : ''}>NODEBUFF</option>
-        <option value="GAPPLE" ${t.kit === 'GAPPLE' ? 'selected' : ''}>GAPPLE</option>
-      </select>
-      <button onclick="this.parentElement.remove()">🗑️</button>
-    `;
-    profileTiers.appendChild(div);
-  });
-}
+  const div = document.createElement('div');
+  div.className = 'tier-entry';
+  
+  const iconMap = {
+    CRYSTALS: 'https://mctiers.com/tier_icons/vanilla.svg',
+    NODEBUFF: '',
+    GAPPLE: ''
+  };
+
+  div.innerHTML = `
+    <div class="tier-icon" title="${t.kit}" data-kit="${t.kit}">
+      ${iconMap[t.kit] || '❓'}
+    </div>
+    <input class="tier-value" value="${t.tier}" />
+    <button onclick="this.parentElement.remove()">🗑️</button>
+  `;
+  profileTiers.appendChild(div);
+});
 
   function addTierEntry() {
-    const div = document.createElement('div');
-    div.className = 'tier-entry';
+  const div = document.createElement('div');
+  div.className = 'tier-entry';
 
-    const input = document.createElement('input');
-    input.placeholder = 'Enter tier...';
-
-    const select = document.createElement('select');
-    ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
-      const option = document.createElement('option');
-      option.value = kit;
-      option.textContent = kit;
-      select.appendChild(option);
-    });
+  div.innerHTML = `
+    <div class="tier-icon" data-kit="CRYSTALS" title="CRYSTALS">🧪</div>
+    <input class="tier-value" placeholder="Enter tier..." />
+    <button onclick="this.parentElement.remove()">🗑️</button>
+  `;
+  profileTiers.appendChild(div);
+}
 
     const delBtn = document.createElement('button');
     delBtn.textContent = '🗑️';

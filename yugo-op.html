@@ -16,17 +16,12 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      margin: 0;
+      margin: auto;
       font-family: sans-serif;
       text-align: center;
       padding: 20px;
       color: #ccc;
     }
-
-    html, body {
-  height: 100%;
-  overflow: hidden;
-}
 
     #addplayer-button {
       position: absolute;
@@ -212,6 +207,16 @@
   background-color: #45a049;
 }
 
+.tier-popup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tier-label {
+  margin-top: 4px;
+  color: white;
+}
 
 #modal-overlay {
   display: none;
@@ -227,6 +232,7 @@
   padding: 20px;
   border-radius: 8px;
 }
+
 #open-add-player {
     position: fixed;
     bottom: 20px;
@@ -247,7 +253,6 @@
     background-color: #45a049;
   }
 
-
   </style>
 </head>
 <body>
@@ -266,37 +271,47 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
+  <img id="profile-skin" alt="Player Skin" />
   <h2 id="profile-name">Player Name</h2>
   <div id="profile-tiers"></div>
-  <div style="text-align: center;">
-    <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/vanilla.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/axe.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/sword.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/uhc.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/smp.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/nethop.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/pot.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://subtiers.net/assets/dia_smp-523efa38.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-  <div style="display: flex; flex-direction: column; align-items: center; margin: 0 10px;">
-  <img src="https://mctiers.com/tier_icons/mace.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
-  <div id="tier-Crystal" class="tier-label" style="margin-top: 12px;"></div>
-</div>
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; font-size:20px;">
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/vanilla.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
+      <div id="tier-Crystal"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/axe.svg" class="kit-icon" onclick="openKitSettings('Axe')" />
+      <div id="tier-Axe"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/sword.svg" class="kit-icon" onclick="openKitSettings('Sword')" />
+      <div id="tier-Sword"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/uhc.svg" class="kit-icon" onclick="openKitSettings('Uhc')" />
+      <div id="tier-Uhc"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/smp.svg" class="kit-icon" onclick="openKitSettings('Smp')" />
+      <div id="tier-Smp"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/nethop.svg" class="kit-icon" onclick="openKitSettings('Nethop')" />
+      <div id="tier-Nethop"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/pot.svg" class="kit-icon" onclick="openKitSettings('DiamondPot')" />
+      <div id="tier-DiamondPot"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://subtiers.net/assets/dia_smp-523efa38.svg" class="kit-icon" onclick="openKitSettings('DiamondSmp')" />
+      <div id="tier-DiamondSmp"></div>
+    </div>
+    <div style="text-align: center;">
+      <img src="https://mctiers.com/tier_icons/mace.svg" class="kit-icon" onclick="openKitSettings('Mace')" />
+      <div id="tier-Mace"></div>
+    </div>
+  </div>
 </div>
 
   <div id="kit-panel" style="

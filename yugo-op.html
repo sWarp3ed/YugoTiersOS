@@ -311,6 +311,24 @@
   background-color: #00b386;
 }
 
+.kit-icons-container {
+  display: flex;
+  flex-direction: row;  /* makes children line up horizontally */
+  flex-wrap: nowrap;    /* prevents wrapping to next line */
+  justify-content: center;  /* centers icons horizontally */
+  align-items: center;      /* vertically centers icons */
+  gap: 10px;                /* space between icons */
+  margin-top: 10px;
+}
+
+.kit-icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  object-fit: contain;
+  user-select: none;
+}
+
   </style>
 </head>
 <body>

@@ -218,12 +218,29 @@
   color: white;
 }
 
+#modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+#modal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+
   </style>
 </head>
 <body>
   <input id="search-bar" placeholder="Search players..." />
   <img src="addplayer.webp" id="addplayer-button" alt="Add Player">
   <div id="player-list"></div>
+  <button id="open-add-player">Add Player</button>
 
   <!-- Add Player Modal -->
   <div id="modal-overlay">
@@ -384,6 +401,59 @@ function showTierOptions(icon, kit, label) {
   popup.style.top = rect.bottom + 'px';
   document.body.appendChild(popup);
 }
+
+const modalOverlay = document.getElementById('modal-overlay');
+const playerNameInput = document.getElementById('player-name-input');
+const doneButton = document.getElementById('done-button');
+const cancelButton = document.getElementById('cancel-button');
+const openAddPlayerBtn = document.getElementById('open-add-player');
+
+let players = []; // your global players array
+let currentEditingTiers = []; // should have tiers selected so far (kits + tiers)
+
+// Open modal when Add Player clicked
+openAddPlayerBtn.addEventListener('click', () => {
+  playerNameInput.value = "";
+  modalOverlay.style.display = "flex";
+  playerNameInput.focus();
+});
+
+// Cancel closes modal without saving
+cancelButton.addEventListener('click', () => {
+  modalOverlay.style.display = "none";
+});
+
+// Add player on done button click
+doneButton.addEventListener('click', () => {
+  const name = playerNameInput.value.trim();
+  if (!name) {
+    alert("Please enter a player name");
+    return;
+  }
+
+  // Optional: check if player name exists
+  if (players.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+    alert("Player with this name already exists.");
+    return;
+  }
+
+  // Create player with currentEditingTiers
+  const newPlayer = {
+    id: Date.now(),
+    name,
+    tiers: currentEditingTiers.slice() // clone the array
+  };
+
+  players.push(newPlayer);
+
+  modalOverlay.style.display = "none";
+
+  currentEditingTiers = []; // clear tiers for next add
+
+  renderPlayersList(); // refresh the list UI
+
+  alert(`Player "${name}" added!`);
+});
 
 async function applyTierToPlayer(kit, tier) {
   if (!selectedPlayerId) return;

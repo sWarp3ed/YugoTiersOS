@@ -386,7 +386,6 @@
   // Set player skin image using Minotar API (80x80 px)
   document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/80`;
 
-  // Create tier entries (input + select + delete button)
   player.tiers?.forEach(t => {
     const div = document.createElement('div');
     div.className = 'tier-entry';
@@ -400,28 +399,6 @@
       <button onclick="this.parentElement.remove()">🗑️</button>
     `;
     profileTiers.appendChild(div);
-  });
-
-  // Update tier labels beside kit icons
-  const kitIcons = profile.querySelectorAll('.kit-icon');
-  kitIcons.forEach(icon => {
-    // Remove any existing tier label
-    const next = icon.nextSibling;
-    if (next && next.className === 'tier-label') {
-      next.remove();
-    }
-  });
-
-  kitIcons.forEach(icon => {
-    const kitName = icon.getAttribute('onclick').match(/openKitSettings\('(.+)'\)/)[1];
-    const existingTier = player.tiers?.find(t => t.kit === kitName.toUpperCase());
-
-    const label = document.createElement('div');
-    label.className = 'tier-label';
-    label.textContent = existingTier ? existingTier.tier : 'No Tier';
-
-    icon.insertAdjacentElement('afterend', label);
-    icon.onclick = () => showTierOptions(icon, kitName.toUpperCase(), label);
   });
 }
 

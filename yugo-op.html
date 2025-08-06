@@ -225,21 +225,48 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
-    <img id="profile-skin" alt="Player Skin" />
-    <h2 id="profile-name">Player Name</h2>
-    <div id="profile-tiers"></div>
-    <div>
+  <img id="profile-skin" alt="Player Skin" />
+  <h2 id="profile-name">Player Name</h2>
+  <div id="profile-tiers"></div>
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px;">
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/vanilla.svg" class="kit-icon" onclick="openKitSettings('Crystal')" />
+      <div id="tier-Crystal">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/axe.svg" class="kit-icon" onclick="openKitSettings('Axe')" />
+      <div id="tier-Axe">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/sword.svg" class="kit-icon" onclick="openKitSettings('Sword')" />
+      <div id="tier-Sword">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/uhc.svg" class="kit-icon" onclick="openKitSettings('Uhc')" />
+      <div id="tier-Uhc">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/smp.svg" class="kit-icon" onclick="openKitSettings('Smp')" />
+      <div id="tier-Smp">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/nethop.svg" class="kit-icon" onclick="openKitSettings('Nethop')" />
+      <div id="tier-Nethop">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/pot.svg" class="kit-icon" onclick="openKitSettings('DiamondPot')" />
+      <div id="tier-DiamondPot">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://subtiers.net/assets/dia_smp-523efa38.svg" class="kit-icon" onclick="openKitSettings('DiamondSmp')" />
+      <div id="tier-DiamondSmp">No Tier</div>
+    </div>
+    <div style="text-align: center;">
       <img src="https://mctiers.com/tier_icons/mace.svg" class="kit-icon" onclick="openKitSettings('Mace')" />
+      <div id="tier-Mace">No Tier</div>
     </div>
   </div>
+</div>
 
   <div id="kit-panel" style="
   display: none;
@@ -247,16 +274,15 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #1e1e1e;
+  background: #222;
   padding: 20px;
   border-radius: 10px;
   z-index: 999;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   color: white;
   text-align: center;
 ">
-  <h3 id="kit-title" style="margin-bottom: 12px;">Select Tier</h3>
-  <div id="tier-buttons" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+  <h3 id="kit-title">Select Tier</h3>
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 10px 0;">
     <button onclick="selectTier('HT1')">HT1</button>
     <button onclick="selectTier('HT2')">HT2</button>
     <button onclick="selectTier('HT3')">HT3</button>
@@ -264,7 +290,7 @@
     <button onclick="selectTier('LT2')">LT2</button>
     <button onclick="selectTier('LT3')">LT3</button>
   </div>
-  <button onclick="closeKitSettings()" style="margin-top: 15px;">Cancel</button>
+  <button onclick="closeKitSettings()">Cancel</button>
 </div>
 
   <script>
@@ -288,57 +314,52 @@
   const profileTiers = document.getElementById('profile-tiers');
 
   let selectedPlayerId = null;
-  let currentKit = null;
+let currentKit = null;
 
-  async function fetchPlayers() {
-    const snapshot = await db.collection('players').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+// Show the tier selector popup
+function openKitSettings(kitName) {
+  if (!selectedPlayerId) {
+    alert("Open a player profile first.");
+    return;
   }
 
-  async function refreshPlayers(filter = '') {
-    let players = await fetchPlayers();
-    if (filter) {
-      players = players.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+  currentKit = kitName;
+  document.getElementById("kit-title").textContent = `Select Tier for ${kitName}`;
+  document.getElementById("kit-panel").style.display = "block";
+}
+
+// Hide the tier selector popup
+function closeKitSettings() {
+  document.getElementById("kit-panel").style.display = "none";
+}
+
+// When a tier is selected
+function selectTier(tier) {
+  if (!selectedPlayerId || !currentKit) return;
+
+  // Get player from Firebase
+  db.collection('players').doc(selectedPlayerId).get().then(doc => {
+    const data = doc.data();
+    const tiers = data.tiers || [];
+
+    // Replace or add this kit's tier
+    const existing = tiers.find(t => t.kit === currentKit);
+    if (existing) {
+      existing.tier = tier;
+    } else {
+      tiers.push({ kit: currentKit, tier });
     }
-    renderPlayers(players);
-  }
 
-  function renderPlayers(players) {
-    playerList.innerHTML = '';
-    players.forEach(p => {
-      const container = document.createElement('div');
-      container.style.display = 'flex';
-      container.style.justifyContent = 'space-between';
-      container.style.alignItems = 'center';
-      container.style.backgroundColor = '#1f1f1f';
-      container.style.padding = '8px';
-      container.style.borderRadius = '4px';
-      container.style.marginBottom = '4px';
+    // Save to Firebase
+    db.collection('players').doc(selectedPlayerId).update({ tiers }).then(() => {
+      // Update UI
+      const label = document.getElementById(`tier-${currentKit}`);
+      if (label) label.textContent = tier;
 
-      const link = document.createElement('div');
-      link.textContent = p.name;
-      link.className = 'player-link';
-      link.style.flex = '1';
-      link.style.cursor = 'pointer';
-      link.onclick = () => openProfile(p);
-
-      const removeBtn = document.createElement('button');
-      removeBtn.textContent = '🗑️';
-      removeBtn.style.backgroundColor = '#cf6679';
-      removeBtn.style.border = 'none';
-      removeBtn.style.borderRadius = '4px';
-      removeBtn.style.color = 'black';
-      removeBtn.style.cursor = 'pointer';
-      removeBtn.onclick = (e) => {
-        e.stopPropagation();
-        deletePlayer(p.id, p.name);
-      };
-
-      container.appendChild(link);
-      container.appendChild(removeBtn);
-      playerList.appendChild(container);
+      closeKitSettings();
     });
-  }
+  });
+}
 
   function openProfile(player) {
     selectedPlayerId = player.id;

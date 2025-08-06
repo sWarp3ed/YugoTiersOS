@@ -519,28 +519,6 @@ async function setPlayerSkin(username, imgElement) {
   }
 }
 
-function openKitSettings(kitName, event) {
-  const panel = document.getElementById('kit-panel');
-  panel.style.display = 'block';
-
-  // Set the title in the popup
-  document.getElementById('kit-title').textContent = `Select Tier for ${kitName}`;
-
-  // Position the panel just below the clicked icon
-  const icon = event.currentTarget;
-  const rect = icon.getBoundingClientRect();
-
-  // Calculate position (below icon, with some margin)
-  panel.style.top = `${rect.bottom + window.scrollY + 10}px`;
-  panel.style.left = `${rect.left + window.scrollX}px`;
-
-  // Store selected kit for saving (if you have)
-  panel.dataset.kit = kitName;
-}
-
-function closeKitSettings() {
-  document.getElementById('kit-panel').style.display = 'none';
-}
 
     // Load players into list
     const playerList = document.getElementById('player-list');
@@ -597,11 +575,6 @@ function closeKitSettings() {
     searchBar.oninput = () => refreshPlayers(searchBar.value);
     refreshPlayers();
 
-    // Dummy openKitSettings function to satisfy onclick in HTML
-    function openKitSettings(kitName) {
-      // This is overridden in openProfile for actual behavior
-      console.log('Kit clicked:', kitName);
-    }
   </script>
 </body>
 </html>

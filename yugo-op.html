@@ -362,25 +362,25 @@ function selectTier(tier) {
 }
 
   function openProfile(player) {
-    selectedPlayerId = player.id;
-    profile.style.display = 'flex';
-    profileName.textContent = player.name;
-    profileTiers.innerHTML = '';
+  selectedPlayerId = player.id;
+  document.getElementById('profile-name').textContent = player.name;
+  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/160`;
 
-    document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/160`;
+  // Reset all tier labels
+  const allKits = ['Crystal', 'Axe', 'Sword', 'Uhc', 'Smp', 'Nethop', 'DiamondPot', 'DiamondSmp', 'Mace'];
+  allKits.forEach(kit => {
+    const label = document.getElementById(`tier-${kit}`);
+    if (label) label.textContent = "No Tier";
+  });
 
-    // Reset tier labels
-    ['CRYSTALS', 'NODEBUFF', 'GAPPLE'].forEach(kit => {
-      const label = document.getElementById(`tier-${kit}`);
-      if (label) label.textContent = 'No Tier';
-    });
+  // Set player tiers
+  player.tiers?.forEach(t => {
+    const label = document.getElementById(`tier-${t.kit}`);
+    if (label) label.textContent = t.tier;
+  });
 
-    // Fill in existing tiers under kit icons
-    player.tiers?.forEach(t => {
-      const label = document.getElementById(`tier-${t.kit}`);
-      if (label) label.textContent = t.tier;
-    });
-  }
+  document.getElementById("player-profile").style.display = "block";
+}
 
   async function deletePlayer(id, name) {
     if (!confirm(`Delete "${name}"?`)) return;

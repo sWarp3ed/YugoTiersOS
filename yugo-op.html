@@ -507,6 +507,19 @@
       }
     }
 
+    function showPlayerProfile(playerName) {
+  const profileSkinImg = document.getElementById('profile-skin');
+  
+  // Set the src to the Crafatar avatar URL
+  profileSkinImg.src = `https://crafatar.com/avatars/${playerName}?size=160&overlay`;
+  
+  // Also update other profile info like player name, tiers, etc...
+  document.getElementById('profile-name').textContent = playerName;
+
+  // Show the profile panel if hidden
+  document.getElementById('player-profile').style.display = 'flex';
+}
+
     // Load players into list
     const playerList = document.getElementById('player-list');
     const searchBar = document.getElementById('search-bar');

@@ -270,6 +270,7 @@
   </div>
 
   <!-- Player Profile Panel -->
+  <div id="player-profile-overlay" style="display: none;">
   <div id="player-profile">
   <img id="profile-skin" alt="Player Skin" />
   <h2 id="profile-name">Player Name</h2>
@@ -363,29 +364,31 @@
     }
 
     function openProfile(player) {
-      selectedPlayerId = player.id;
-      profile.style.display = 'flex';
-      profileName.textContent = player.name;
-      // Clear previous tier labels
-      const kitIcons = profile.querySelectorAll('.kit-icon');
-      kitIcons.forEach(icon => {
-        // Remove any existing tier-label next to icon first
-        const next = icon.nextSibling;
-        if (next && next.className === 'tier-label') {
-          next.remove();
-        }
-      });
-      // Add tier labels next to each kit icon
-      kitIcons.forEach(icon => {
-        const kitName = icon.getAttribute('onclick').match(/openKitSettings\('(.+)'\)/)[1];
-        let existingTier = player.tiers?.find(t => t.kit === kitName.toUpperCase());
-        let label = document.createElement('div');
-        label.className = 'tier-label';
-        label.textContent = existingTier ? existingTier.tier : 'No Tier';
-        icon.insertAdjacentElement('afterend', label);
-        icon.onclick = () => showTierOptions(icon, kitName.toUpperCase(), label);
-      });
+  selectedPlayerId = player.id;
+  profileOverlay.style.display = 'flex';
+  profileName.textContent = player.name;
+  document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/160`;
+
+  // Clear old labels
+  const kitIcons = profile.querySelectorAll('.kit-icon');
+  kitIcons.forEach(icon => {
+    const next = icon.nextSibling;
+    if (next && next.className === 'tier-label') {
+      next.remove();
     }
+  });
+
+  // Add new tier labels
+  kitIcons.forEach(icon => {
+    const kitName = icon.getAttribute('onclick').match(/openKitSettings\('(.+)'\)/)[1];
+    let existingTier = player.tiers?.find(t => t.kit === kitName.toUpperCase());
+    let label = document.createElement('div');
+    label.className = 'tier-label';
+    label.textContent = existingTier ? existingTier.tier : '';
+    icon.insertAdjacentElement('afterend', label);
+    icon.onclick = () => showTierOptions(icon, kitName.toUpperCase(), label);
+  });
+}
 
     function showTierOptions(icon, kit, label) {
       // Remove previous popup if any
@@ -562,6 +565,14 @@
       // This is overridden in openProfile for actual behavior
       console.log('Kit clicked:', kitName);
     }
+
+profileOverlay.addEventListener('click', (e) => {
+  if (e.target === profileOverlay) {
+    profileOverlay.style.display = 'none';
+    selectedPlayerId = null;
+  }
+});
+
   </script>
 </body>
 </html>

@@ -278,6 +278,39 @@
   background-color: #00b386;
 }
 
+#kit-panel {
+  display: none;
+  position: absolute;
+  background-color: #222;
+  padding: 20px;
+  border-radius: 12px;
+  width: 900px;
+  height: 260px;
+  color: white;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+  opacity: 0.95;
+  transition: opacity 0.3s ease;
+  /* We'll dynamically set top and left in JS */
+}
+
+#kit-panel button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 20px;
+  background-color: #00cc99;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 204, 153, 0.6);
+  transition: background-color 0.3s ease;
+}
+
+#kit-panel button:hover {
+  background-color: #00b386;
+}
+
   </style>
 </head>
 <body>
@@ -529,6 +562,7 @@
   }
 }
 
+
 async function setPlayerSkin(username, imgElement) {
   const uuid = await getUUID(username);
   if (uuid) {
@@ -536,6 +570,29 @@ async function setPlayerSkin(username, imgElement) {
   } else {
     imgElement.src = 'https://crafatar.com/avatars/8667ba71b85a4004af54457a9734eed7?size=160&overlay'; // Steve default skin fallback
   }
+}
+
+function openKitSettings(kitName, event) {
+  const panel = document.getElementById('kit-panel');
+  panel.style.display = 'block';
+
+  // Set the title in the popup
+  document.getElementById('kit-title').textContent = `Select Tier for ${kitName}`;
+
+  // Position the panel just below the clicked icon
+  const icon = event.currentTarget;
+  const rect = icon.getBoundingClientRect();
+
+  // Calculate position (below icon, with some margin)
+  panel.style.top = `${rect.bottom + window.scrollY + 10}px`;
+  panel.style.left = `${rect.left + window.scrollX}px`;
+
+  // Store selected kit for saving (if you have)
+  panel.dataset.kit = kitName;
+}
+
+function closeKitSettings() {
+  document.getElementById('kit-panel').style.display = 'none';
 }
 
     // Load players into list

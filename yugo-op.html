@@ -241,31 +241,31 @@
     </div>
   </div>
 
-  <div id="kit-panel">
-    <h2 id="kit-title">Kit Tier</h2>
-    <button onclick="applySelectedTier()">Apply Tier</button>dsg
-    <div id="tier-buttons" style="
-  margin-top: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 8px;
-  max-height: 200px;
-  overflow-y: auto;
+  <div id="kit-panel" style="
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 999;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  color: white;
+  text-align: center;
 ">
-  <button onclick="selectTier('LT5')">LT5</button>
-  <button onclick="selectTier('LT4')">LT4</button>
-  <button onclick="selectTier('LT3')">LT3</button>
-  <button onclick="selectTier('LT2')">LT2</button>
-  <button onclick="selectTier('LT1')">LT1</button>
-  <button onclick="selectTier('Untiered')">T</button>
-  <button onclick="selectTier('HT1')">HT1</button>
-  <button onclick="selectTier('HT2')">HT2</button>
-  <button onclick="selectTier('HT3')">HT3</button>
-  <button onclick="selectTier('HT4')">HT4</button>
-  <button onclick="selectTier('HT5')">HT5</button>
-</div>
-    <button onclick="closeKitSettings()">Close</button>
+  <h3 id="kit-title" style="margin-bottom: 12px;">Select Tier</h3>
+  <div id="tier-buttons" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+    <button onclick="selectTier('HT1')">HT1</button>
+    <button onclick="selectTier('HT2')">HT2</button>
+    <button onclick="selectTier('HT3')">HT3</button>
+    <button onclick="selectTier('LT1')">LT1</button>
+    <button onclick="selectTier('LT2')">LT2</button>
+    <button onclick="selectTier('LT3')">LT3</button>
   </div>
+  <button onclick="closeKitSettings()" style="margin-top: 15px;">Cancel</button>
+</div>
 
   <script>
   const firebaseConfig = {
@@ -290,45 +290,39 @@
   let selectedPlayerId = null;
   let currentKit = null;
 
-  async function fetchPlayers() {
-    const snapshot = await db.collection('players').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
+function openKitTierSelector(kitName) {
+  currentKit = kitName;
+  document.getElementById("kit-title").textContent = `Select Tier for ${kitName}`;
+  document.getElementById("kit-panel").style.display = "block";
+}
 
-  function renderPlayers(players) {
-    playerList.innerHTML = '';
-    players.forEach(p => {
-      const container = document.createElement('div');
-      container.style.display = 'flex';
-      container.style.justifyContent = 'space-between';
-      container.style.alignItems = 'center';
-      container.style.backgroundColor = '#1f1f1f';
-      container.style.padding = '8px';
-      container.style.borderRadius = '4px';
+function closeKitSettings() {
+  document.getElementById("kit-panel").style.display = "none";
+}
 
-      const link = document.createElement('div');
-      link.textContent = p.name;
-      link.className = 'player-link';
-      link.style.flex = '1';
-      link.onclick = () => openProfile(p);
+function selectTier(tier) {
+  if (!selectedPlayerId || !currentKit) return;
 
-      const removeBtn = document.createElement('button');
-      removeBtn.textContent = '🗑️';
-      removeBtn.style.backgroundColor = '#cf6679';
-      removeBtn.style.border = 'none';
-      removeBtn.style.borderRadius = '4px';
-      removeBtn.style.color = 'black';
-      removeBtn.style.cursor = 'pointer';
-      removeBtn.onclick = (e) => {
-        e.stopPropagation();
-        deletePlayer(p.id, p.name);
-      };
+  db.collection('players').doc(selectedPlayerId).get().then(doc => {
+    const playerData = doc.data();
+    let tiers = playerData.tiers || [];
 
-      container.appendChild(link);
-      container.appendChild(removeBtn);
-      playerList.appendChild(container);
+    // Update or insert
+    const existing = tiers.find(t => t.kit === currentKit);
+    if (existing) {
+      existing.tier = tier;
+    } else {
+      tiers.push({ kit: currentKit, tier });
+    }
+
+    // Save
+    db.collection('players').doc(selectedPlayerId).update({ tiers }).then(() => {
+      document.getElementById(`tier-${currentKit}`).textContent = tier;
+      closeKitSettings();
     });
-  }
+  });
+}
+
 
   function openProfile(player) {
     selectedPlayerId = player.id;

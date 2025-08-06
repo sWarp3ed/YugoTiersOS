@@ -233,19 +233,33 @@
   border-radius: 8px;
 }
 
-.open-add-player {
+#open-add-player {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: background-color 0.3s ease;
+  }
 
-  height:40px;
-  width: 40px
-}
-
+  #open-add-player:hover {
+    background-color: #45a049;
+  }
 
   </style>
 </head>
 <body>
   <input id="search-bar" placeholder="Search players..." />
-  <img src="addplayer.webp" id="open-add-player" alt="Add Player">
+  <img src="addplayer.webp" id="addplayer-button" alt="Add Player">
   <div id="player-list"></div>
+  <button id="open-add-player">＋</button>
 
   <!-- Add Player Modal -->
   <div id="modal-overlay">

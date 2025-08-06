@@ -290,39 +290,55 @@
   let selectedPlayerId = null;
   let currentKit = null;
 
-function openKitTierSelector(kitName) {
-  currentKit = kitName;
-  document.getElementById("kit-title").textContent = `Select Tier for ${kitName}`;
-  document.getElementById("kit-panel").style.display = "block";
-}
+  async function fetchPlayers() {
+    const snapshot = await db.collection('players').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
 
-function closeKitSettings() {
-  document.getElementById("kit-panel").style.display = "none";
-}
-
-function selectTier(tier) {
-  if (!selectedPlayerId || !currentKit) return;
-
-  db.collection('players').doc(selectedPlayerId).get().then(doc => {
-    const playerData = doc.data();
-    let tiers = playerData.tiers || [];
-
-    // Update or insert
-    const existing = tiers.find(t => t.kit === currentKit);
-    if (existing) {
-      existing.tier = tier;
-    } else {
-      tiers.push({ kit: currentKit, tier });
+  async function refreshPlayers(filter = '') {
+    let players = await fetchPlayers();
+    if (filter) {
+      players = players.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
     }
+    renderPlayers(players);
+  }
 
-    // Save
-    db.collection('players').doc(selectedPlayerId).update({ tiers }).then(() => {
-      document.getElementById(`tier-${currentKit}`).textContent = tier;
-      closeKitSettings();
+  function renderPlayers(players) {
+    playerList.innerHTML = '';
+    players.forEach(p => {
+      const container = document.createElement('div');
+      container.style.display = 'flex';
+      container.style.justifyContent = 'space-between';
+      container.style.alignItems = 'center';
+      container.style.backgroundColor = '#1f1f1f';
+      container.style.padding = '8px';
+      container.style.borderRadius = '4px';
+      container.style.marginBottom = '4px';
+
+      const link = document.createElement('div');
+      link.textContent = p.name;
+      link.className = 'player-link';
+      link.style.flex = '1';
+      link.style.cursor = 'pointer';
+      link.onclick = () => openProfile(p);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = '🗑️';
+      removeBtn.style.backgroundColor = '#cf6679';
+      removeBtn.style.border = 'none';
+      removeBtn.style.borderRadius = '4px';
+      removeBtn.style.color = 'black';
+      removeBtn.style.cursor = 'pointer';
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        deletePlayer(p.id, p.name);
+      };
+
+      container.appendChild(link);
+      container.appendChild(removeBtn);
+      playerList.appendChild(container);
     });
-  });
-}
-
+  }
 
   function openProfile(player) {
     selectedPlayerId = player.id;
@@ -343,37 +359,6 @@ function selectTier(tier) {
       const label = document.getElementById(`tier-${t.kit}`);
       if (label) label.textContent = t.tier;
     });
-  }
-
-  async function refreshPlayers(filter = '') {
-    let players = await fetchPlayers();
-    if (filter) {
-      players = players.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
-    }
-    renderPlayers(players);
-  }
-
-  function showModal() {
-    modalOverlay.style.display = 'flex';
-    playerNameInput.value = '';
-    playerNameInput.focus();
-  }
-
-  function hideModal() {
-    modalOverlay.style.display = 'none';
-  }
-
-  async function addPlayer(name) {
-    name = name.trim();
-    if (!name) return alert('Player name cannot be empty.');
-    const existing = await fetchPlayers();
-    if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-      return alert('Player already exists!');
-    }
-    await db.collection('players').add({ name, tiers: [] });
-    hideModal();
-    searchBar.value = '';
-    await refreshPlayers();
   }
 
   async function deletePlayer(id, name) {
@@ -420,6 +405,29 @@ function selectTier(tier) {
   cancelButton.onclick = hideModal;
   doneButton.onclick = () => addPlayer(playerNameInput.value);
   searchBar.oninput = () => refreshPlayers(searchBar.value);
+
+  function showModal() {
+    modalOverlay.style.display = 'flex';
+    playerNameInput.value = '';
+    playerNameInput.focus();
+  }
+
+  function hideModal() {
+    modalOverlay.style.display = 'none';
+  }
+
+  async function addPlayer(name) {
+    name = name.trim();
+    if (!name) return alert('Player name cannot be empty.');
+    const existing = await fetchPlayers();
+    if (existing.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+      return alert('Player already exists!');
+    }
+    await db.collection('players').add({ name, tiers: [] });
+    hideModal();
+    searchBar.value = '';
+    await refreshPlayers();
+  }
 
   // Initial load
   refreshPlayers();

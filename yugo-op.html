@@ -399,6 +399,34 @@
       });
     });
   }
+  function applySelectedTier() {
+  if (!selectedTier || !selectedPlayerId || !currentKit) return alert("Select a tier and kit first.");
+
+  // Fetch current tiers from Firebase
+  db.collection('players').doc(selectedPlayerId).get().then(doc => {
+    const data = doc.data();
+    const tiers = data.tiers || [];
+
+    // Update or insert the selected tier for this kit
+    const existing = tiers.find(t => t.kit === currentKit);
+    if (existing) {
+      existing.tier = selectedTier;
+    } else {
+      tiers.push({ tier: selectedTier, kit: currentKit });
+    }
+
+    // Save back to Firebase
+    db.collection('players').doc(selectedPlayerId).update({ tiers }).then(() => {
+      // ✅ Update UI: Show selected tier under icon
+      const tierLabel = document.getElementById(`tier-${currentKit}`);
+      if (tierLabel) {
+        tierLabel.textContent = selectedTier;
+      }
+
+      closeKitSettings(); // close modal
+    });
+  });
+}
 
   // Event listeners
   addPlayerButton.onclick = showModal;

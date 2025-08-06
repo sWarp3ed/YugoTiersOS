@@ -507,17 +507,25 @@
       }
     }
 
-    function showPlayerProfile(playerName) {
-  const profileSkinImg = document.getElementById('profile-skin');
-  
-  // Set the src to the Crafatar avatar URL
-  profileSkinImg.src = `https://crafatar.com/avatars/${playerName}?size=160&overlay`;
-  
-  // Also update other profile info like player name, tiers, etc...
-  document.getElementById('profile-name').textContent = playerName;
+    async function getUUID(username) {
+  try {
+    const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${username}`);
+    if (!response.ok) throw new Error('User not found');
+    const data = await response.json();
+    return data.id; // UUID without dashes
+  } catch (error) {
+    console.error('Error fetching UUID:', error);
+    return null;
+  }
+}
 
-  // Show the profile panel if hidden
-  document.getElementById('player-profile').style.display = 'flex';
+async function setPlayerSkin(username, imgElement) {
+  const uuid = await getUUID(username);
+  if (uuid) {
+    imgElement.src = `https://crafatar.com/avatars/${uuid}?size=160&overlay`;
+  } else {
+    imgElement.src = 'https://crafatar.com/avatars/8667ba71b85a4004af54457a9734eed7?size=160&overlay'; // Steve default skin fallback
+  }
 }
 
     // Load players into list

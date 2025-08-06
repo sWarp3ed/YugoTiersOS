@@ -341,7 +341,7 @@ function selectTier(tier) {
   db.collection('players').doc(selectedPlayerId).get().then(doc => {
     const data = doc.data();
     const tiers = data.tiers || [];
-
+''
     // Replace or add this kit's tier
     const existing = tiers.find(t => t.kit === currentKit);
     if (existing) {

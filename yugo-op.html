@@ -501,10 +501,10 @@
   // Position popup (same as before)...
   const profileRect = profile.getBoundingClientRect();
   const scrollY = window.scrollY || window.pageYOffset;
-  let leftPos = profileRect.left + profileRect.width / 40;
+  let leftPos = profileRect.left + profileRect.width / 50;
   popup.style.left = `${leftPos}px`;
   popup.style.transform = 'translateX(-50%)';
-  let topPos = profileRect.bottom + scrollY - 600 ;
+  let topPos = profileRect.bottom + scrollY - 650 ;
   popup.style.top = `${topPos}px`;
 
   // Toggle button to switch between editing current and peak tier

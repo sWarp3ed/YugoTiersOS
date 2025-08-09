@@ -517,7 +517,6 @@
 
   // Toggle button to switch between editing current and peak tier
   const toggleBtn = document.createElement('button');
-  modeLabel.textContent = 'Current Tier'; 
   toggleBtn.textContent = 'Edit Peak Tier';  // initial mode is editing current tier
   toggleBtn.style.marginBottom = '15px';
   toggleBtn.style.padding = '8px 12px';
@@ -527,6 +526,7 @@
   toggleBtn.style.backgroundColor = '#444';
   toggleBtn.style.color = 'white';
   toggleBtn.style.fontSize = '16px';
+  toggleBtn.textContent = "Current Tier"
 
   popup.appendChild(toggleBtn);
 

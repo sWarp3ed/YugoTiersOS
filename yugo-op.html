@@ -502,13 +502,13 @@
   const containerRect = iconsContainer.getBoundingClientRect();
 
   // Position popup below the icons container
-  const top = containerRect.height + 5; // 5px below the container bottom inside container
+  const top = containerRect.height + 20; // 5px below the container bottom inside container
   const left = containerRect.width / 2; // center horizontally
 
   // Set popup position relative to container (make sure container is position: relative)
   popup.style.top = `${top}px`;
   popup.style.left = '50%';
-  popup.style.transform = 'translateX(-80%)'; // center horizontally
+  popup.style.transform = 'translateX(-50%)'; // center horizontally
 
   iconsContainer.style.position = 'relative'; // make sure container is relative positioned
   iconsContainer.appendChild(popup);

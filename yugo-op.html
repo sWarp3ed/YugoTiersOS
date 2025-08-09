@@ -338,6 +338,7 @@
 
   <!-- Player Profile Panel -->
   <div id="player-profile">
+    <button id="close-profile" style="position: absolute; top: 8px; left: 8px; background: transparent; border: none; font-size: 20px; cursor: pointer; color: white;">×</button>
   <img id="profile-skin" alt="Player Skin" />
   <h2 id="profile-name">Player Name</h2>
   <div id="profile-tiers"></div>
@@ -423,6 +424,13 @@
   const profile = document.getElementById('player-profile');
   const profileName = document.getElementById('profile-name');
   const profileTiers = document.getElementById('profile-tiers');
+
+  // New close button element inside the profile (make sure this exists in your HTML)
+  const closeProfileBtn = document.getElementById('close-profile');
+  closeProfileBtn.addEventListener('click', () => {
+    profile.style.display = 'none';
+    selectedPlayerId = null;
+  });
 
   async function fetchPlayers() {
     const snapshot = await db.collection('players').get();

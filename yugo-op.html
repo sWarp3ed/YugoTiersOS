@@ -479,53 +479,57 @@
   }
 
   function showTierOptions(icon, kit, label) {
-    // Remove any existing big popup first
-    const existingPopup = document.getElementById('big-tier-popup');
-    if (existingPopup) existingPopup.remove();
+  // Remove previous popup if any
+  const old = document.querySelector('.tier-popup');
+  if (old) old.remove();
 
-    const popup = document.createElement('div');
-    popup.id = 'big-tier-popup';
-    popup.style.position = 'absolute';
-    popup.style.bottom = '10px';  // 10px above bottom of profile box
-    popup.style.left = '50%';
-    popup.style.transform = 'translateX(-50%)';
-    popup.style.backgroundColor = '#222';
-    popup.style.border = '2px solid #555';
-    popup.style.borderRadius = '8px';
-    popup.style.padding = '20px';
-    popup.style.zIndex = '1000';
-    popup.style.display = 'flex';
-    popup.style.flexWrap = 'wrap';
-    popup.style.justifyContent = 'center';
-    popup.style.maxWidth = '90%';
-    popup.style.boxShadow = '0 0 15px rgba(0,0,0,0.7)';
+  const popup = document.createElement('div');
+  popup.className = 'tier-popup';
+  popup.style.position = 'absolute';
+  popup.style.backgroundColor = '#333';
+  popup.style.border = '1px solid #555';
+  popup.style.borderRadius = '4px';
+  popup.style.padding = '8px';
+  popup.style.zIndex = '1000';
+  popup.style.width = '220px';  // make popup wider
+  popup.style.display = 'flex';
+  popup.style.flexWrap = 'wrap';
+  popup.style.justifyContent = 'center';
+  popup.style.gap = '5px';
 
-    const tiers = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5', "RHT1", "RLT1", "RHT2", "RLT2"];
-    tiers.forEach(tier => {
-      const btn = document.createElement('button');
-      btn.textContent = tier;
-      btn.style.margin = '8px';
-      btn.style.padding = '12px 18px';
-      btn.style.fontSize = '18px';
-      btn.style.cursor = 'pointer';
-      btn.style.borderRadius = '6px';
-      btn.style.border = 'none';
-      btn.style.backgroundColor = '#444';
-      btn.style.color = 'white';
-      btn.style.transition = 'background-color 0.3s';
-      btn.onmouseenter = () => btn.style.backgroundColor = '#666';
-      btn.onmouseleave = () => btn.style.backgroundColor = '#444';
+  const tiers = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3','HT4','LT4','HT5','LT5',"RHT1","RLT1","RHT2","RLT2"];
+  tiers.forEach(tier => {
+    const btn = document.createElement('button');
+    btn.textContent = tier;
+    btn.style.flex = '1 0 45px';
+    btn.style.padding = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.border = 'none';
+    btn.style.borderRadius = '3px';
+    btn.style.backgroundColor = '#555';
+    btn.style.color = 'white';
+    btn.onmouseover = () => btn.style.backgroundColor = '#777';
+    btn.onmouseout = () => btn.style.backgroundColor = '#555';
 
-      btn.onclick = async () => {
-        await applyTierToPlayer(kit, tier);
-        label.textContent = tier;
-        popup.remove();
-      };
-      popup.appendChild(btn);
-    });
+    btn.onclick = async () => {
+      await applyTierToPlayer(kit, tier);
+      label.textContent = tier;
+      popup.remove();
+    };
+    popup.appendChild(btn);
+  });
 
-    tierPopupContainer.appendChild(popup);
-  }
+  // Position near icon: below it and horizontally aligned to the left
+  const rect = icon.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset;
+  const scrollX = window.scrollX || window.pageXOffset;
+
+  popup.style.top = (rect.bottom + scrollY + 5) + 'px';  // 5px below icon
+  popup.style.left = (rect.left + scrollX) + 'px';
+
+  document.body.appendChild(popup);
+}
+    
 
   const modalOverlay = document.getElementById('modal-overlay');
   const playerNameInput = document.getElementById('player-name-input');

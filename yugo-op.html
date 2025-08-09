@@ -485,29 +485,48 @@
 
   const popup = document.createElement('div');
   popup.className = 'tier-popup';
+
+  // Style the popup as a big box near bottom center of profile box
   popup.style.position = 'absolute';
-  popup.style.backgroundColor = '#333';
-  popup.style.border = '1px solid #555';
-  popup.style.borderRadius = '4px';
-  popup.style.padding = '8px';
-  popup.style.zIndex = '1000';
-  popup.style.width = '220px';  // make popup wider
+  popup.style.backgroundColor = '#222';
+  popup.style.border = '2px solid #888';
+  popup.style.borderRadius = '8px';
+  popup.style.padding = '20px';
+  popup.style.zIndex = '2000';
+
+  // Size and center horizontally inside profile box
+  popup.style.width = '90%';       // almost full width of profile box
+  popup.style.maxWidth = '600px';  // max width
+  popup.style.height = '250px';    // taller popup
+  popup.style.left = '50%';
+  popup.style.transform = 'translateX(-50%)';
+
+  // Position near the bottom of the profile container, with some margin
+  const profileRect = profile.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset;
+  popup.style.top = (profileRect.bottom + scrollY - popup.style.height.replace('px', '') - 10) + 'px';
+
+  // Use flexbox inside for tier buttons
   popup.style.display = 'flex';
   popup.style.flexWrap = 'wrap';
   popup.style.justifyContent = 'center';
-  popup.style.gap = '5px';
+  popup.style.alignItems = 'center';
+  popup.style.gap = '10px';
+  popup.style.overflowY = 'auto';
 
   const tiers = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3','HT4','LT4','HT5','LT5',"RHT1","RLT1","RHT2","RLT2"];
   tiers.forEach(tier => {
     const btn = document.createElement('button');
     btn.textContent = tier;
-    btn.style.flex = '1 0 45px';
-    btn.style.padding = '4px';
+    btn.style.flex = '0 0 80px';
+    btn.style.height = '50px';
+    btn.style.fontSize = '18px';
     btn.style.cursor = 'pointer';
     btn.style.border = 'none';
-    btn.style.borderRadius = '3px';
+    btn.style.borderRadius = '6px';
     btn.style.backgroundColor = '#555';
     btn.style.color = 'white';
+    btn.style.transition = 'background-color 0.3s';
     btn.onmouseover = () => btn.style.backgroundColor = '#777';
     btn.onmouseout = () => btn.style.backgroundColor = '#555';
 
@@ -519,15 +538,18 @@
     popup.appendChild(btn);
   });
 
-  // Position near icon: below it and horizontally aligned to the left
-  const rect = icon.getBoundingClientRect();
-  const scrollY = window.scrollY || window.pageYOffset;
-  const scrollX = window.scrollX || window.pageXOffset;
-
-  popup.style.top = (rect.bottom + scrollY + 5) + 'px';  // 5px below icon
-  popup.style.left = (rect.left + scrollX) + 'px';
-
   document.body.appendChild(popup);
+
+  // Also add an event listener to close popup when clicking outside
+  function outsideClickListener(event) {
+    if (!popup.contains(event.target) && event.target !== icon) {
+      popup.remove();
+      document.removeEventListener('click', outsideClickListener);
+    }
+  }
+  setTimeout(() => { // Delay to avoid immediate close on click
+    document.addEventListener('click', outsideClickListener);
+  }, 0);
 }
     
 

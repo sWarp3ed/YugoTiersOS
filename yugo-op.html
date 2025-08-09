@@ -342,6 +342,7 @@
   <img id="profile-skin" alt="Player Skin" />
   <h2 id="profile-name">Player Name</h2>
   <div id="tier-popup-container" style="position: relative; width: 100%; height: 0;"></div>
+  <button id="close-profile">Close Profile</button>
   <div id="profile-tiers"></div>
   <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; font-size:20px;">
     <div style="text-align: center;">
@@ -412,7 +413,7 @@
   <button onclick="closeKitSettings()">Cancel</button>
 </div>
 
- <script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
     authDomain: "yugotiers-b297d.firebaseapp.com",
@@ -445,6 +446,23 @@
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 
+  // --- TIER ORDER for comparison (lower index = better tier)
+  const tierOrder = ["LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1","RLT2","RHT2","RLT1","RHT1"];
+
+  // Helper: Compare tiers, return true if tierA better than tierB
+  function isBetterTier(tierA, tierB) {
+    const iA = tierOrder.indexOf(tierA);
+    const iB = tierOrder.indexOf(tierB);
+    if (iA === -1) return false; // unknown tier
+    if (iB === -1) return true;
+    return iA < iB;
+  }
+
+  // Helper: normalize tier strings uppercase
+  function normalizeTier(t) {
+    return (t || "").toUpperCase();
+  }
+
   function openProfile(player) {
     selectedPlayerId = player.id;
     profile.style.display = 'flex';
@@ -457,7 +475,7 @@
     const kitIcons = profile.querySelectorAll('.kit-icon');
     kitIcons.forEach(icon => {
       const next = icon.nextSibling;
-      if (next && next.className === 'tier-label') {
+      if (next && (next.className === 'tier-label' || next.className === 'peak-tier-label')) {
         next.remove();
       }
       // Reset click handlers to new popup function
@@ -469,255 +487,273 @@
     // Add tier labels next to each kit icon, set up click handlers
     kitIcons.forEach(icon => {
       const kitName = icon.getAttribute('onclick').match(/openKitSettings\('(.+)'\)/)[1];
-      let existingTier = player.tiers?.find(t => t.kit === kitName.toUpperCase());
+      let tierEntry = player.tiers?.find(t => t.kit === kitName.toUpperCase());
+
+      // Current tier label
       let label = document.createElement('div');
       label.className = 'tier-label';
-      label.textContent = existingTier ? existingTier.tier : 'No Tier';
+      label.textContent = tierEntry ? (tierEntry.tier || 'No Tier') : 'No Tier';
+      label.style.marginBottom = '4px';
       icon.insertAdjacentElement('afterend', label);
-      icon.onclick = () => showTierOptions(icon, kitName.toUpperCase(), label);
+
+      // Peak tier label (smaller & lighter)
+      let peakLabel = document.createElement('div');
+      peakLabel.className = 'peak-tier-label';
+      peakLabel.textContent = tierEntry && tierEntry.peakTier ? `Peak: ${tierEntry.peakTier}` : 'Peak: -';
+      peakLabel.style.fontSize = 'smaller';
+      peakLabel.style.color = '#aaa';
+      label.insertAdjacentElement('afterend', peakLabel);
+
+      icon.onclick = () => showTierOptions(icon, kitName.toUpperCase(), label, peakLabel);
     });
   }
 
-  function showTierOptions(icon, kit, label) {
-  // Remove previous popup if any
-  const old = document.querySelector('.tier-popup');
-  if (old) old.remove();
+  // Modified showTierOptions to edit both current and peak tier
+  function showTierOptions(icon, kit, label, peakLabel) {
+    // Remove previous popup if any
+    const old = document.querySelector('.tier-popup');
+    if (old) old.remove();
 
-  const popup = document.createElement('div');
-  popup.className = 'tier-popup';
+    const popup = document.createElement('div');
+    popup.className = 'tier-popup';
+    popup.id = 'big-tier-popup';
 
-  popup.style.position = 'absolute';
-  popup.style.backgroundColor = '#222';
-  popup.style.border = '2px solid #888';
-  popup.style.borderRadius = '8px';
-  popup.style.padding = '20px';
-  popup.style.zIndex = '2000';
+    popup.style.position = 'absolute';
+    popup.style.backgroundColor = '#222';
+    popup.style.border = '2px solid #888';
+    popup.style.borderRadius = '8px';
+    popup.style.padding = '20px';
+    popup.style.zIndex = '2000';
 
-  popup.style.width = '95%';       // almost full width of profile box
-  popup.style.maxWidth = '900px';  // max width
-  popup.style.height = '250px';    // taller popup
+    popup.style.width = '95%';       // almost full width of profile box
+    popup.style.maxWidth = '900px';  // max width
+    popup.style.height = '250px';    // taller popup
 
-  // Position: horizontally centered relative to profile
-  const profileRect = profile.getBoundingClientRect();
-  const scrollY = window.scrollY || window.pageYOffset;
+    // Position: horizontally centered relative to profile
+    const profileRect = profile.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset;
 
-  let leftPos = profileRect.left + profileRect.width / 2; // center of profile
-  popup.style.left = `${leftPos}px`;
-  popup.style.transform = 'translateX(-50%)'; // center horizontally
+    let leftPos = profileRect.left + profileRect.width / 2; // center of profile
+    popup.style.left = `${leftPos}px`;
+    popup.style.transform = 'translateX(-50%)'; // center horizontally
 
-  // Move popup a bit more up from previous 300px, say 350px up
-  let topPos = profileRect.bottom + scrollY - 350; 
-  popup.style.top = `${topPos}px`;
+    // Move popup a bit more up from previous 300px, say 350px up
+    let topPos = profileRect.bottom + scrollY - 350; 
+    popup.style.top = `${topPos}px`;
 
-  // Flex layout for buttons
-  popup.style.display = 'flex';
-  popup.style.flexWrap = 'wrap';
-  popup.style.justifyContent = 'center';
-  popup.style.alignItems = 'center';
-  popup.style.gap = '10px';
-  popup.style.overflowY = 'auto';
+    // Toggle buttons for current tier / peak tier editing
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = 'Edit Peak Tier';
+    toggleBtn.style.marginBottom = '15px';
+    toggleBtn.style.padding = '8px 12px';
+    toggleBtn.style.cursor = 'pointer';
+    toggleBtn.style.borderRadius = '6px';
+    toggleBtn.style.border = 'none';
+    toggleBtn.style.backgroundColor = '#444';
+    toggleBtn.style.color = 'white';
+    toggleBtn.style.fontSize = '16px';
 
-  const tiers = ["LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1","RLT2","RHT2","RLT1","RHT1"];
-  tiers.forEach(tier => {
-    const btn = document.createElement('button');
-    btn.textContent = tier;
-    btn.style.flex = '0 0 80px';
-    btn.style.height = '50px';
-    btn.style.fontSize = '18px';
-    btn.style.cursor = 'pointer';
-    btn.style.border = 'none';
-    btn.style.borderRadius = '6px';
-    btn.style.backgroundColor = '#555';
-    btn.style.color = 'white';
-    btn.style.transition = 'background-color 0.3s';
-    btn.onmouseover = () => btn.style.backgroundColor = '#777';
-    btn.onmouseout = () => btn.style.backgroundColor = '#555';
+    popup.appendChild(toggleBtn);
 
-    btn.onclick = async () => {
-      await applyTierToPlayer(kit, tier);
-      label.textContent = tier;
-      popup.remove();
-    };
-    popup.appendChild(btn);
-  });
+    // Container for tier buttons
+    const tierContainer = document.createElement('div');
+    tierContainer.style.display = 'flex';
+    tierContainer.style.flexWrap = 'wrap';
+    tierContainer.style.justifyContent = 'center';
+    tierContainer.style.alignItems = 'center';
+    tierContainer.style.gap = '10px';
+    tierContainer.style.overflowY = 'auto';
+    tierContainer.style.height = '180px';
 
-  document.body.appendChild(popup);
+    popup.appendChild(tierContainer);
 
-  // Close on outside click
-  function outsideClickListener(event) {
-    if (!popup.contains(event.target) && event.target !== icon) {
-      popup.remove();
-      document.removeEventListener('click', outsideClickListener);
+    const tiers = ["LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1","RLT2","RHT2","RLT1","RHT1"];
+
+    let editingPeak = false;
+
+    function renderTierButtons(editPeak) {
+      tierContainer.innerHTML = '';
+      tiers.forEach(tier => {
+        const btn = document.createElement('button');
+        btn.textContent = tier;
+        btn.style.flex = '0 0 80px';
+        btn.style.height = '50px';
+        btn.style.fontSize = '18px';
+        btn.style.cursor = 'pointer';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '6px';
+        btn.style.backgroundColor = '#555';
+        btn.style.color = 'white';
+        btn.style.transition = 'background-color 0.3s';
+        btn.onmouseover = () => btn.style.backgroundColor = '#777';
+        btn.onmouseout = () => btn.style.backgroundColor = '#555';
+
+        btn.onclick = async () => {
+          if (editPeak) {
+            await applyPeakTierToPlayer(kit, tier);
+            peakLabel.textContent = `Peak: ${tier}`;
+          } else {
+            await applyTierToPlayer(kit, tier);
+            label.textContent = tier;
+
+            // Auto-update peak tier if new tier is better OR if current tier returns to peak tier => remove peak
+            await updatePeakTierIfNeeded(kit, tier);
+            // Refresh peak label
+            const player = players.find(p => p.id === selectedPlayerId);
+            const tierEntry = player?.tiers?.find(t => t.kit === kit);
+            peakLabel.textContent = tierEntry && tierEntry.peakTier ? `Peak: ${tierEntry.peakTier}` : 'Peak: -';
+          }
+          popup.remove();
+        };
+        tierContainer.appendChild(btn);
+      });
     }
+
+    toggleBtn.onclick = () => {
+      editingPeak = !editingPeak;
+      toggleBtn.textContent = editingPeak ? 'Edit Current Tier' : 'Edit Peak Tier';
+      renderTierButtons(editingPeak);
+    };
+
+    renderTierButtons(editingPeak);
+
+    tierPopupContainer.appendChild(popup);
+
+    // Remove popup on clicking outside
+    function onClickOutside(e) {
+      if (!popup.contains(e.target) && e.target !== icon) {
+        popup.remove();
+        document.removeEventListener('click', onClickOutside);
+      }
+    }
+    setTimeout(() => document.addEventListener('click', onClickOutside), 100);
   }
-  setTimeout(() => {
-    document.addEventListener('click', outsideClickListener);
-  }, 0);
-}
-
-    
-
-  const modalOverlay = document.getElementById('modal-overlay');
-  const playerNameInput = document.getElementById('player-name-input');
-  const doneButton = document.getElementById('done-button');
-  const cancelButton = document.getElementById('cancel-button');
-  const openAddPlayerBtn = document.getElementById('open-add-player');
-
-  let players = []; // global players array
-  let currentEditingTiers = []; // for new player
-
-  openAddPlayerBtn.addEventListener('click', () => {
-    playerNameInput.value = "";
-    modalOverlay.style.display = "flex";
-    playerNameInput.focus();
-  });
-
-  cancelButton.addEventListener('click', () => {
-    modalOverlay.style.display = "none";
-  });
-
-  doneButton.addEventListener('click', async () => {
-    const name = playerNameInput.value.trim();
-    if (!name) {
-      alert("Please enter a player name");
-      return;
-    }
-
-    if (players.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-      alert("Player with this name already exists.");
-      return;
-    }
-
-    const newPlayer = {
-      name,
-      tiers: currentEditingTiers.slice()
-    };
-
-    try {
-      const docRef = await db.collection('players').add(newPlayer);
-      newPlayer.id = docRef.id;
-      players.push(newPlayer);
-      modalOverlay.style.display = "none";
-      currentEditingTiers = [];
-      renderPlayers(players);
-      alert(`Player "${name}" added!`);
-    } catch (e) {
-      alert("Error adding player: " + e.message);
-    }
-  });
 
   async function applyTierToPlayer(kit, tier) {
     if (!selectedPlayerId) return;
+    const playerRef = db.collection('players').doc(selectedPlayerId);
+    const playerDoc = await playerRef.get();
+    if (!playerDoc.exists) return;
 
-    const docRef = db.collection('players').doc(selectedPlayerId);
-    const doc = await docRef.get();
-    const player = doc.data();
+    let data = playerDoc.data();
+    let tiers = data.tiers || [];
 
-    let tiers = player.tiers || [];
-
-    const existingIndex = tiers.findIndex(t => t.kit === kit);
-    if (existingIndex !== -1) {
-      tiers[existingIndex].tier = tier;
-    } else {
-      tiers.push({ kit, tier });
+    // Update or add tier for kit
+    const tierUpper = normalizeTier(tier);
+    let found = false;
+    tiers = tiers.map(t => {
+      if (t.kit === kit) {
+        found = true;
+        return { ...t, tier: tierUpper };
+      }
+      return t;
+    });
+    if (!found) {
+      tiers.push({ kit, tier: tierUpper });
     }
 
-    await docRef.update({ tiers });
-
-    let localPlayer = players.find(p => p.id === selectedPlayerId);
-    if (localPlayer) {
-      localPlayer.tiers = tiers;
-    }
-  }
-
-  async function getUUID(username) {
-    try {
-      const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${username}`);
-      if (!response.ok) throw new Error('User not found');
-      const data = await response.json();
-      return data.id;
-    } catch (error) {
-      console.error('Error fetching UUID:', error);
-      return null;
+    await playerRef.update({ tiers });
+    // Update local players array copy
+    let player = players.find(p => p.id === selectedPlayerId);
+    if (player) {
+      player.tiers = tiers;
     }
   }
 
-  async function setPlayerSkin(username, imgElement) {
-    const uuid = await getUUID(username);
-    if (uuid) {
-      imgElement.src = `https://crafatar.com/avatars/${uuid}?size=160&overlay`;
-    } else {
-      imgElement.src = 'https://crafatar.com/avatars/8667ba71b85a4004af54457a9734eed7?size=160&overlay';
+  async function applyPeakTierToPlayer(kit, peakTier) {
+    if (!selectedPlayerId) return;
+    const playerRef = db.collection('players').doc(selectedPlayerId);
+    const playerDoc = await playerRef.get();
+    if (!playerDoc.exists) return;
+
+    let data = playerDoc.data();
+    let tiers = data.tiers || [];
+
+    const peakTierUpper = normalizeTier(peakTier);
+
+    let found = false;
+    tiers = tiers.map(t => {
+      if (t.kit === kit) {
+        found = true;
+        return { ...t, peakTier: peakTierUpper };
+      }
+      return t;
+    });
+    if (!found) {
+      tiers.push({ kit, peakTier: peakTierUpper });
+    }
+
+    await playerRef.update({ tiers });
+    // Update local players array copy
+    let player = players.find(p => p.id === selectedPlayerId);
+    if (player) {
+      player.tiers = tiers;
     }
   }
 
-  const playerList = document.getElementById('player-list');
-  const searchBar = document.getElementById('search-bar');
+  async function updatePeakTierIfNeeded(kit, newTier) {
+    if (!selectedPlayerId) return;
+    const playerRef = db.collection('players').doc(selectedPlayerId);
+    const playerDoc = await playerRef.get();
+    if (!playerDoc.exists) return;
 
-  async function refreshPlayers(filter = '') {
+    let data = playerDoc.data();
+    let tiers = data.tiers || [];
+
+    // Find tier entry for kit
+    let tierEntry = tiers.find(t => t.kit === kit);
+    if (!tierEntry) return;
+
+    let currentTier = normalizeTier(newTier);
+    let peakTier = normalizeTier(tierEntry.peakTier);
+
+    // If no peak tier, set peak to current tier
+    if (!peakTier) {
+      tierEntry.peakTier = currentTier;
+      await playerRef.update({ tiers });
+      return;
+    }
+
+    // If current tier better than peak tier, update peak tier
+    if (isBetterTier(currentTier, peakTier)) {
+      tierEntry.peakTier = currentTier;
+      await playerRef.update({ tiers });
+      return;
+    }
+
+    // If current tier is equal or better than peak tier (player "returned" to peak or better),
+    // remove peak tier as peak is "reached" again
+    if (currentTier === peakTier || isBetterTier(currentTier, peakTier)) {
+      delete tierEntry.peakTier;
+      await playerRef.update({ tiers });
+      return;
+    }
+  }
+
+  // Players cache to store fetched data for profile update
+  let players = [];
+
+  async function refreshPlayerList() {
     players = await fetchPlayers();
-    if (filter) {
-      players = players.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
-    }
     renderPlayers(players);
   }
 
   function renderPlayers(players) {
-    playerList.innerHTML = '';
-    players.forEach(p => {
-      const container = document.createElement('div');
-      container.className = 'player-link';
-      container.style.display = 'flex';
-      container.style.justifyContent = 'space-between';
-      container.style.alignItems = 'center';
-      container.style.marginBottom = '5px';
-      container.style.cursor = 'pointer';
+    const list = document.getElementById('players-list');
+    list.innerHTML = '';
 
-      container.onclick = () => openProfile(p);
-
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = p.name;
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = '✖';
-      deleteBtn.style.marginLeft = '10px';
-      deleteBtn.style.padding = '2px 6px';
-      deleteBtn.style.background = '#f44336';
-      deleteBtn.style.color = 'white';
-      deleteBtn.style.border = 'none';
-      deleteBtn.style.borderRadius = '4px';
-      deleteBtn.style.cursor = 'pointer';
-      deleteBtn.onclick = async (e) => {
-        e.stopPropagation();
-        const confirmDelete = confirm(`Are you sure you want to delete "${p.name}"?`);
-        if (confirmDelete) {
-          await db.collection('players').doc(p.id).delete();
-          refreshPlayers();
-        }
-      };
-
-      container.appendChild(nameSpan);
-      container.appendChild(deleteBtn);
-      playerList.appendChild(container);
+    players.forEach(player => {
+      const li = document.createElement('li');
+      li.textContent = player.name;
+      li.onclick = () => openProfile(player);
+      list.appendChild(li);
     });
   }
 
-  // Close big tier popup if clicking outside it or kit icons
-  document.addEventListener('click', (event) => {
-    const popup = document.getElementById('big-tier-popup');
-    if (!popup) return;
-
-    const isInsidePopup = popup.contains(event.target);
-    const isKitIcon = event.target.classList.contains('kit-icon');
-
-    if (!isInsidePopup && !isKitIcon) {
-      popup.remove();
-    }
-  });
-
-  searchBar.oninput = () => refreshPlayers(searchBar.value);
-  refreshPlayers();
+  // Initial load
+  refreshPlayerList();
 </script>
+
 
 </body>
 </html>

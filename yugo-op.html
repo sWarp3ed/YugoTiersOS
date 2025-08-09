@@ -412,7 +412,7 @@
   <button onclick="closeKitSettings()">Cancel</button>
 </div>
 
-  <script>
+ <script>
   const firebaseConfig = {
     apiKey: "AIzaSyDziQ1jdojoUwYDUpGLNfbzMDh5-iB1QIQ",
     authDomain: "yugotiers-b297d.firebaseapp.com",
@@ -426,11 +426,18 @@
   const profileName = document.getElementById('profile-name');
   const profileTiers = document.getElementById('profile-tiers');
 
+  // Make sure your HTML contains this container inside #player-profile:
+  // <div id="tier-popup-container" style="position: relative; width: 100%; height: 0;"></div>
+  const tierPopupContainer = document.getElementById('tier-popup-container');
+
   // New close button element inside the profile (make sure this exists in your HTML)
   const closeProfileBtn = document.getElementById('close-profile');
   closeProfileBtn.addEventListener('click', () => {
     profile.style.display = 'none';
     selectedPlayerId = null;
+    // Remove popup if open
+    const oldPopup = document.getElementById('big-tier-popup');
+    if (oldPopup) oldPopup.remove();
   });
 
   async function fetchPlayers() {
@@ -446,16 +453,20 @@
     // Set player skin image using Minotar API (80x80 px)
     document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/180`;
 
-    // Clear previous tier labels
+    // Clear previous tier labels and remove any existing popup
     const kitIcons = profile.querySelectorAll('.kit-icon');
     kitIcons.forEach(icon => {
       const next = icon.nextSibling;
       if (next && next.className === 'tier-label') {
         next.remove();
       }
+      // Reset click handlers to new popup function
+      icon.onclick = null;
     });
+    const oldPopup = document.getElementById('big-tier-popup');
+    if (oldPopup) oldPopup.remove();
 
-    // Add tier labels next to each kit icon
+    // Add tier labels next to each kit icon, set up click handlers
     kitIcons.forEach(icon => {
       const kitName = icon.getAttribute('onclick').match(/openKitSettings\('(.+)'\)/)[1];
       let existingTier = player.tiers?.find(t => t.kit === kitName.toUpperCase());
@@ -468,26 +479,43 @@
   }
 
   function showTierOptions(icon, kit, label) {
-    // Remove previous popup if any
-    const old = document.querySelector('.tier-popup');
-    if (old) old.remove();
+    // Remove any existing big popup first
+    const existingPopup = document.getElementById('big-tier-popup');
+    if (existingPopup) existingPopup.remove();
 
     const popup = document.createElement('div');
-    popup.className = 'tier-popup';
+    popup.id = 'big-tier-popup';
     popup.style.position = 'absolute';
-    popup.style.backgroundColor = '#333';
-    popup.style.border = '1px solid #555';
-    popup.style.borderRadius = '4px';
-    popup.style.padding = '5px';
+    popup.style.bottom = '10px';  // 10px above bottom of profile box
+    popup.style.left = '50%';
+    popup.style.transform = 'translateX(-50%)';
+    popup.style.backgroundColor = '#222';
+    popup.style.border = '2px solid #555';
+    popup.style.borderRadius = '8px';
+    popup.style.padding = '20px';
     popup.style.zIndex = '1000';
+    popup.style.display = 'flex';
+    popup.style.flexWrap = 'wrap';
+    popup.style.justifyContent = 'center';
+    popup.style.maxWidth = '90%';
+    popup.style.boxShadow = '0 0 15px rgba(0,0,0,0.7)';
 
-    const tiers = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3','HT4','LT4','HT5','LT5',"RHT1","RLT1","RHT2","RLT2"];
+    const tiers = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5', "RHT1", "RLT1", "RHT2", "RLT2"];
     tiers.forEach(tier => {
       const btn = document.createElement('button');
       btn.textContent = tier;
-      btn.style.margin = '2px';
-      btn.style.padding = '4px';
+      btn.style.margin = '8px';
+      btn.style.padding = '12px 18px';
+      btn.style.fontSize = '18px';
       btn.style.cursor = 'pointer';
+      btn.style.borderRadius = '6px';
+      btn.style.border = 'none';
+      btn.style.backgroundColor = '#444';
+      btn.style.color = 'white';
+      btn.style.transition = 'background-color 0.3s';
+      btn.onmouseenter = () => btn.style.backgroundColor = '#666';
+      btn.onmouseleave = () => btn.style.backgroundColor = '#444';
+
       btn.onclick = async () => {
         await applyTierToPlayer(kit, tier);
         label.textContent = tier;
@@ -496,11 +524,7 @@
       popup.appendChild(btn);
     });
 
-    // Position near icon
-    const rect = icon.getBoundingClientRect();
-    popup.style.left = rect.left + 'px';
-    popup.style.top = rect.bottom + 'px';
-    document.body.appendChild(popup);
+    tierPopupContainer.appendChild(popup);
   }
 
   const modalOverlay = document.getElementById('modal-overlay');
@@ -617,14 +641,12 @@
       container.style.justifyContent = 'space-between';
       container.style.alignItems = 'center';
       container.style.marginBottom = '5px';
-      container.style.cursor = 'pointer';  // <-- add pointer cursor
+      container.style.cursor = 'pointer';
 
-      container.onclick = () => openProfile(p); // <-- whole container clickable
+      container.onclick = () => openProfile(p);
 
       const nameSpan = document.createElement('span');
       nameSpan.textContent = p.name;
-      // Remove onclick from nameSpan so it won't interfere
-      // nameSpan.style.cursor = 'pointer'; // optional to keep or remove
 
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = '✖';
@@ -636,7 +658,7 @@
       deleteBtn.style.borderRadius = '4px';
       deleteBtn.style.cursor = 'pointer';
       deleteBtn.onclick = async (e) => {
-        e.stopPropagation(); // prevent opening profile on delete click
+        e.stopPropagation();
         const confirmDelete = confirm(`Are you sure you want to delete "${p.name}"?`);
         if (confirmDelete) {
           await db.collection('players').doc(p.id).delete();
@@ -650,22 +672,23 @@
     });
   }
 
+  // Close big tier popup if clicking outside it or kit icons
   document.addEventListener('click', (event) => {
-  const popup = document.querySelector('.tier-popup');
-  if (!popup) return; // no popup shown
+    const popup = document.getElementById('big-tier-popup');
+    if (!popup) return;
 
-  // Check if click is outside the popup and outside any kit icon
-  const isClickInsidePopup = popup.contains(event.target);
-  const isClickOnKitIcon = event.target.classList.contains('kit-icon');
+    const isInsidePopup = popup.contains(event.target);
+    const isKitIcon = event.target.classList.contains('kit-icon');
 
-  if (!isClickInsidePopup && !isClickOnKitIcon) {
-    popup.remove();
-  }
-});
+    if (!isInsidePopup && !isKitIcon) {
+      popup.remove();
+    }
+  });
 
   searchBar.oninput = () => refreshPlayers(searchBar.value);
   refreshPlayers();
 </script>
+
 </body>
 </html>
 

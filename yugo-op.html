@@ -73,9 +73,18 @@
       transition: width 0.3s ease;
     }
 
-    #search-bar:hover {
-      width: 330px;
-    }
+    #search-bar::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Optional: same scrollbar style inside search input if needed */
+#search-bar::-webkit-scrollbar {
+  width: 6px;
+}
+#search-bar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 3px;
+}
 
     #modal-overlay {
       display: none;

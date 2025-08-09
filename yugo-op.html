@@ -427,16 +427,11 @@
   const profileName = document.getElementById('profile-name');
   const profileTiers = document.getElementById('profile-tiers');
 
-  // Make sure your HTML contains this container inside #player-profile:
-  // <div id="tier-popup-container" style="position: relative; width: 100%; height: 0;"></div>
   const tierPopupContainer = document.getElementById('tier-popup-container');
-
-  // New close button element inside the profile (make sure this exists in your HTML)
   const closeProfileBtn = document.getElementById('close-profile');
   closeProfileBtn.addEventListener('click', () => {
     profile.style.display = 'none';
     selectedPlayerId = null;
-    // Remove popup if open
     const oldPopup = document.getElementById('big-tier-popup');
     if (oldPopup) oldPopup.remove();
   });
@@ -446,19 +441,16 @@
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 
-  // --- TIER ORDER for comparison (lower index = better tier)
   const tierOrder = ["LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1","RLT2","RHT2","RLT1","RHT1"];
 
-  // Helper: Compare tiers, return true if tierA better than tierB
   function isBetterTier(tierA, tierB) {
     const iA = tierOrder.indexOf(tierA);
     const iB = tierOrder.indexOf(tierB);
-    if (iA === -1) return false; // unknown tier
+    if (iA === -1) return false;
     if (iB === -1) return true;
     return iA < iB;
   }
 
-  // Helper: normalize tier strings uppercase
   function normalizeTier(t) {
     return (t || "").toUpperCase();
   }
@@ -467,36 +459,29 @@
     selectedPlayerId = player.id;
     profile.style.display = 'flex';
     profileName.textContent = player.name;
-
-    // Set player skin image using Minotar API (80x80 px)
     document.getElementById('profile-skin').src = `https://minotar.net/avatar/${player.name}/180`;
 
-    // Clear previous tier labels and remove any existing popup
     const kitIcons = profile.querySelectorAll('.kit-icon');
     kitIcons.forEach(icon => {
       const next = icon.nextSibling;
       if (next && (next.className === 'tier-label' || next.className === 'peak-tier-label')) {
         next.remove();
       }
-      // Reset click handlers to new popup function
       icon.onclick = null;
     });
     const oldPopup = document.getElementById('big-tier-popup');
     if (oldPopup) oldPopup.remove();
 
-    // Add tier labels next to each kit icon, set up click handlers
     kitIcons.forEach(icon => {
       const kitName = icon.getAttribute('onclick').match(/openKitSettings\('(.+)'\)/)[1];
       let tierEntry = player.tiers?.find(t => t.kit === kitName.toUpperCase());
 
-      // Current tier label
       let label = document.createElement('div');
       label.className = 'tier-label';
       label.textContent = tierEntry ? (tierEntry.tier || 'No Tier') : 'No Tier';
       label.style.marginBottom = '4px';
       icon.insertAdjacentElement('afterend', label);
 
-      // Peak tier label (smaller & lighter)
       let peakLabel = document.createElement('div');
       peakLabel.className = 'peak-tier-label';
       peakLabel.textContent = tierEntry && tierEntry.peakTier ? `Peak: ${tierEntry.peakTier}` : 'Peak: -';
@@ -508,9 +493,7 @@
     });
   }
 
-  // Modified showTierOptions to edit both current and peak tier
   function showTierOptions(icon, kit, label, peakLabel) {
-    // Remove previous popup if any
     const old = document.querySelector('.tier-popup');
     if (old) old.remove();
 
@@ -525,23 +508,20 @@
     popup.style.padding = '20px';
     popup.style.zIndex = '2000';
 
-    popup.style.width = '95%';       // almost full width of profile box
-    popup.style.maxWidth = '900px';  // max width
-    popup.style.height = '250px';    // taller popup
+    popup.style.width = '95%';
+    popup.style.maxWidth = '900px';
+    popup.style.height = '250px';
 
-    // Position: horizontally centered relative to profile
     const profileRect = profile.getBoundingClientRect();
     const scrollY = window.scrollY || window.pageYOffset;
 
-    let leftPos = profileRect.left + profileRect.width / 2; // center of profile
+    let leftPos = profileRect.left + profileRect.width / 2;
     popup.style.left = `${leftPos}px`;
-    popup.style.transform = 'translateX(-50%)'; // center horizontally
+    popup.style.transform = 'translateX(-50%)';
 
-    // Move popup a bit more up from previous 300px, say 350px up
-    let topPos = profileRect.bottom + scrollY - 350; 
+    let topPos = profileRect.bottom + scrollY - 350;
     popup.style.top = `${topPos}px`;
 
-    // Toggle buttons for current tier / peak tier editing
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = 'Edit Peak Tier';
     toggleBtn.style.marginBottom = '15px';
@@ -555,7 +535,6 @@
 
     popup.appendChild(toggleBtn);
 
-    // Container for tier buttons
     const tierContainer = document.createElement('div');
     tierContainer.style.display = 'flex';
     tierContainer.style.flexWrap = 'wrap';
@@ -595,10 +574,7 @@
           } else {
             await applyTierToPlayer(kit, tier);
             label.textContent = tier;
-
-            // Auto-update peak tier if new tier is better OR if current tier returns to peak tier => remove peak
             await updatePeakTierIfNeeded(kit, tier);
-            // Refresh peak label
             const player = players.find(p => p.id === selectedPlayerId);
             const tierEntry = player?.tiers?.find(t => t.kit === kit);
             peakLabel.textContent = tierEntry && tierEntry.peakTier ? `Peak: ${tierEntry.peakTier}` : 'Peak: -';
@@ -619,7 +595,6 @@
 
     tierPopupContainer.appendChild(popup);
 
-    // Remove popup on clicking outside
     function onClickOutside(e) {
       if (!popup.contains(e.target) && e.target !== icon) {
         popup.remove();
@@ -638,7 +613,6 @@
     let data = playerDoc.data();
     let tiers = data.tiers || [];
 
-    // Update or add tier for kit
     const tierUpper = normalizeTier(tier);
     let found = false;
     tiers = tiers.map(t => {
@@ -653,11 +627,14 @@
     }
 
     await playerRef.update({ tiers });
-    // Update local players array copy
+
     let player = players.find(p => p.id === selectedPlayerId);
     if (player) {
       player.tiers = tiers;
     }
+
+    // Refresh players list after update
+    await refreshPlayerList();
   }
 
   async function applyPeakTierToPlayer(kit, peakTier) {
@@ -684,11 +661,14 @@
     }
 
     await playerRef.update({ tiers });
-    // Update local players array copy
+
     let player = players.find(p => p.id === selectedPlayerId);
     if (player) {
       player.tiers = tiers;
     }
+
+    // Refresh players list after update
+    await refreshPlayerList();
   }
 
   async function updatePeakTierIfNeeded(kit, newTier) {
@@ -700,37 +680,34 @@
     let data = playerDoc.data();
     let tiers = data.tiers || [];
 
-    // Find tier entry for kit
     let tierEntry = tiers.find(t => t.kit === kit);
     if (!tierEntry) return;
 
     let currentTier = normalizeTier(newTier);
     let peakTier = normalizeTier(tierEntry.peakTier);
 
-    // If no peak tier, set peak to current tier
     if (!peakTier) {
       tierEntry.peakTier = currentTier;
       await playerRef.update({ tiers });
+      await refreshPlayerList();
       return;
     }
 
-    // If current tier better than peak tier, update peak tier
     if (isBetterTier(currentTier, peakTier)) {
       tierEntry.peakTier = currentTier;
       await playerRef.update({ tiers });
+      await refreshPlayerList();
       return;
     }
 
-    // If current tier is equal or better than peak tier (player "returned" to peak or better),
-    // remove peak tier as peak is "reached" again
     if (currentTier === peakTier || isBetterTier(currentTier, peakTier)) {
       delete tierEntry.peakTier;
       await playerRef.update({ tiers });
+      await refreshPlayerList();
       return;
     }
   }
 
-  // Players cache to store fetched data for profile update
   let players = [];
 
   async function refreshPlayerList() {

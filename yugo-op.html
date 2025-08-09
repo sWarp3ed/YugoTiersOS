@@ -649,6 +649,19 @@
     });
   }
 
+  document.addEventListener('click', (event) => {
+  const popup = document.querySelector('.tier-popup');
+  if (!popup) return; // no popup shown
+
+  // Check if click is outside the popup and outside any kit icon
+  const isClickInsidePopup = popup.contains(event.target);
+  const isClickOnKitIcon = event.target.classList.contains('kit-icon');
+
+  if (!isClickInsidePopup && !isClickOnKitIcon) {
+    popup.remove();
+  }
+});
+
   searchBar.oninput = () => refreshPlayers(searchBar.value);
   refreshPlayers();
 </script>

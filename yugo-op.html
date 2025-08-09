@@ -486,7 +486,6 @@
   const popup = document.createElement('div');
   popup.className = 'tier-popup';
 
-  // Style the popup as a big box near bottom center of profile box
   popup.style.position = 'absolute';
   popup.style.backgroundColor = '#222';
   popup.style.border = '2px solid #888';
@@ -494,19 +493,26 @@
   popup.style.padding = '20px';
   popup.style.zIndex = '2000';
 
-  // Size and center horizontally inside profile box
   popup.style.width = '90%';       // almost full width of profile box
   popup.style.maxWidth = '600px';  // max width
   popup.style.height = '250px';    // taller popup
-  popup.style.left = '50%';
-  popup.style.transform = 'translateX(-50%)';
 
-  // Position near the bottom of the profile container, with some margin
+  // Position: a bit more right, and more up
+  // Calculate based on profile container position:
   const profileRect = profile.getBoundingClientRect();
   const scrollY = window.scrollY || window.pageYOffset;
-  popup.style.top = (profileRect.bottom + scrollY - popup.style.height.replace('px', '') - 10) + 'px';
 
-  // Use flexbox inside for tier buttons
+  // More right: set left closer to profileRect.left + 60% of width
+  let leftPos = profileRect.left + profileRect.width * 0.6;
+  popup.style.left = `${leftPos}px`;
+
+  // More up: position from top higher than before (less than bottom - height)
+  let topPos = profileRect.bottom + scrollY - 300; // 300px up from profile bottom (popup height + extra)
+  popup.style.top = `${topPos}px`;
+
+  // No horizontal transform this time since we set exact left
+
+  // Style popup content with flexbox
   popup.style.display = 'flex';
   popup.style.flexWrap = 'wrap';
   popup.style.justifyContent = 'center';
@@ -540,6 +546,20 @@
 
   document.body.appendChild(popup);
 
+  // Click outside to close popup
+  function outsideClickListener(event) {
+    if (!popup.contains(event.target) && event.target !== icon) {
+      popup.remove();
+      document.removeEventListener('click', outsideClickListener);
+    }
+  }
+  setTimeout(() => {
+    document.addEventListener('click', outsideClickListener);
+  }, 0);
+};
+
+  document.body.appendChild(popup);
+
   // Also add an event listener to close popup when clicking outside
   function outsideClickListener(event) {
     if (!popup.contains(event.target) && event.target !== icon) {
@@ -550,7 +570,7 @@
   setTimeout(() => { // Delay to avoid immediate close on click
     document.addEventListener('click', outsideClickListener);
   }, 0);
-}
+
     
 
   const modalOverlay = document.getElementById('modal-overlay');

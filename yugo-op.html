@@ -41,6 +41,9 @@
       flex-direction: column;
       gap: 8px;
       max-width: 400px;
+       overflow-y: auto;   /* scroll only vertically */
+  overflow-x: hidden; /* prevent horizontal scroll */
+  scrollbar-width: thin;
     }
 
     .player-link {
@@ -255,8 +258,8 @@
 
   html, body {
   height: 100%;
-  overflow: auto;
-}
+  overflow: hidden;
+  }
 
 #profile-skin {
   position: absolute;

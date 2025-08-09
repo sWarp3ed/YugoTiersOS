@@ -341,6 +341,7 @@
     <button id="close-profile" style="position: absolute; top: 8px; left: 8px; background: transparent; border: none; font-size: 40px; cursor: pointer; color: white;">×</button>
   <img id="profile-skin" alt="Player Skin" />
   <h2 id="profile-name">Player Name</h2>
+  <div id="tier-popup-container" style="position: relative; width: 100%; height: 0;"></div>
   <div id="profile-tiers"></div>
   <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; font-size:20px;">
     <div style="text-align: center;">
@@ -467,40 +468,64 @@
   }
 
   function showTierOptions(icon, kit, label) {
-    // Remove previous popup if any
-    const old = document.querySelector('.tier-popup');
-    if (old) old.remove();
+  // Remove any existing popup
+  const existingPopup = document.getElementById('big-tier-popup');
+  if (existingPopup) existingPopup.remove();
 
-    const popup = document.createElement('div');
-    popup.className = 'tier-popup';
-    popup.style.position = 'absolute';
-    popup.style.backgroundColor = '#333';
-    popup.style.border = '1px solid #555';
-    popup.style.borderRadius = '4px';
-    popup.style.padding = '5px';
-    popup.style.zIndex = '1000';
+  // Create the big popup container
+  const popup = document.createElement('div');
+  popup.id = 'big-tier-popup';
+  popup.style.position = 'absolute';
+  popup.style.bottom = '10px';  // 10px from bottom of profile box
+  popup.style.left = '50%';
+  popup.style.transform = 'translateX(-50%)';
+  popup.style.backgroundColor = '#222';
+  popup.style.border = '2px solid #555';
+  popup.style.borderRadius = '8px';
+  popup.style.padding = '20px';
+  popup.style.zIndex = '1000';
+  popup.style.display = 'flex';
+  popup.style.flexWrap = 'wrap';
+  popup.style.justifyContent = 'center';
+  popup.style.maxWidth = '90%';
+  popup.style.boxShadow = '0 0 15px rgba(0,0,0,0.7)';
 
-    const tiers = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3','HT4','LT4','HT5','LT5',"RHT1","RLT1","RHT2","RLT2"];
-    tiers.forEach(tier => {
-      const btn = document.createElement('button');
-      btn.textContent = tier;
-      btn.style.margin = '2px';
-      btn.style.padding = '4px';
-      btn.style.cursor = 'pointer';
-      btn.onclick = async () => {
-        await applyTierToPlayer(kit, tier);
-        label.textContent = tier;
-        popup.remove();
-      };
-      popup.appendChild(btn);
-    });
+  // Bigger tier buttons
+  const tiers = ['HT1', 'LT1', 'HT2', 'LT2', 'HT3', 'LT3', 'HT4', 'LT4', 'HT5', 'LT5', "RHT1", "RLT1", "RHT2", "RLT2"];
+  tiers.forEach(tier => {
+    const btn = document.createElement('button');
+    btn.textContent = tier;
+    btn.style.margin = '8px';
+    btn.style.padding = '12px 18px';
+    btn.style.fontSize = '18px';
+    btn.style.cursor = 'pointer';
+    btn.style.borderRadius = '6px';
+    btn.style.border = 'none';
+    btn.style.backgroundColor = '#444';
+    btn.style.color = 'white';
+    btn.style.transition = 'background-color 0.3s';
+    btn.onmouseenter = () => btn.style.backgroundColor = '#666';
+    btn.onmouseleave = () => btn.style.backgroundColor = '#444';
+
+    btn.onclick = async () => {
+      await applyTierToPlayer(kit, tier);
+      label.textContent = tier;
+      popup.remove();
+    };
+    popup.appendChild(btn);
+  });
+
+  // Add popup to the profile box inside the container div
+  const container = document.getElementById('tier-popup-container');
+  container.appendChild(popup);
+}
 
     // Position near icon
     const rect = icon.getBoundingClientRect();
     popup.style.left = rect.left + 'px';
     popup.style.top = rect.bottom + 'px';
     document.body.appendChild(popup);
-  }
+  
 
   const modalOverlay = document.getElementById('modal-overlay');
   const playerNameInput = document.getElementById('player-name-input');
@@ -650,17 +675,18 @@
   }
 
   document.addEventListener('click', (event) => {
-  const popup = document.querySelector('.tier-popup');
-  if (!popup) return; // no popup shown
+  const popup = document.getElementById('big-tier-popup');
+  if (!popup) return;
 
-  // Check if click is outside the popup and outside any kit icon
-  const isClickInsidePopup = popup.contains(event.target);
-  const isClickOnKitIcon = event.target.classList.contains('kit-icon');
+  const isInsidePopup = popup.contains(event.target);
+  const isKitIcon = event.target.classList.contains('kit-icon');
 
-  if (!isClickInsidePopup && !isClickOnKitIcon) {
+  if (!isInsidePopup && !isKitIcon) {
     popup.remove();
   }
 });
+
+
 
   searchBar.oninput = () => refreshPlayers(searchBar.value);
   refreshPlayers();

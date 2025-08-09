@@ -497,22 +497,19 @@
   popup.style.maxWidth = '600px';  // max width
   popup.style.height = '250px';    // taller popup
 
-  // Position: a bit more right, and more up
-  // Calculate based on profile container position:
+  // Position: horizontally centered relative to profile
   const profileRect = profile.getBoundingClientRect();
   const scrollY = window.scrollY || window.pageYOffset;
 
-  // More right: set left closer to profileRect.left + 60% of width
-  let leftPos = profileRect.left + profileRect.width * 0.6;
+  let leftPos = profileRect.left + profileRect.width / 2; // center of profile
   popup.style.left = `${leftPos}px`;
+  popup.style.transform = 'translateX(-50%)'; // center horizontally
 
-  // More up: position from top higher than before (less than bottom - height)
-  let topPos = profileRect.bottom + scrollY - 300; // 300px up from profile bottom (popup height + extra)
+  // Move popup a bit more up from previous 300px, say 350px up
+  let topPos = profileRect.bottom + scrollY - 350; 
   popup.style.top = `${topPos}px`;
 
-  // No horizontal transform this time since we set exact left
-
-  // Style popup content with flexbox
+  // Flex layout for buttons
   popup.style.display = 'flex';
   popup.style.flexWrap = 'wrap';
   popup.style.justifyContent = 'center';
@@ -546,7 +543,7 @@
 
   document.body.appendChild(popup);
 
-  // Click outside to close popup
+  // Close on outside click
   function outsideClickListener(event) {
     if (!popup.contains(event.target) && event.target !== icon) {
       popup.remove();
@@ -557,6 +554,7 @@
     document.addEventListener('click', outsideClickListener);
   }, 0);
 }
+
     
 
   const modalOverlay = document.getElementById('modal-overlay');

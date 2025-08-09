@@ -487,38 +487,41 @@
   popup.className = 'tier-popup';
   popup.id = 'big-tier-popup';
 
-  // Your existing styles here
+  // Popup style
   popup.style.position = 'absolute';
   popup.style.backgroundColor = 'rgba(20, 20, 20, 0.9)';
   popup.style.border = '1px solid #555';
   popup.style.borderRadius = '5px';
   popup.style.padding = '10px';
   popup.style.display = 'flex';
+  popup.style.flexDirection = 'column';
   popup.style.gap = '10px';
   popup.style.zIndex = '1000';
 
   // Find the container of the tier icons (the row)
-  const iconsContainer = icon.parentElement;  // assuming icons are siblings inside this container
+  const iconsContainer = icon.parentElement;
   const containerRect = iconsContainer.getBoundingClientRect();
 
   // Position popup below the icons container
-  const top = containerRect.height + 100; // 5px below the container bottom inside container
-  const left = containerRect.width / 60; // center horizontally
-
-  // Set popup position relative to container (make sure container is position: relative)
-  popup.style.top = `${top}px`;
+  popup.style.top = `${containerRect.height + 10}px`;
   popup.style.left = '50%';
-  popup.style.transform = 'translateX(-50%)'; // center horizontally
-
-  iconsContainer.style.position = 'relative'; // make sure container is relative positioned
+  popup.style.transform = 'translateX(-50%)';
+  iconsContainer.style.position = 'relative';
   iconsContainer.appendChild(popup);
 
-  // rest of your code for buttons and tiers...
+  // Title label (this changes with toggle)
+  const modeLabel = document.createElement('div');
+  modeLabel.textContent = 'Current Tier';
+  modeLabel.style.color = '#fff';
+  modeLabel.style.fontSize = '18px';
+  modeLabel.style.fontWeight = 'bold';
+  modeLabel.style.textAlign = 'center';
+  popup.appendChild(modeLabel);
 
-  // Toggle button to switch between editing current and peak tier
+  // Toggle button
   const toggleBtn = document.createElement('button');
-  toggleBtn.textContent = 'Edit Peak Tier';  // initial mode is editing current tier
-  toggleBtn.style.marginBottom = '15px';
+  toggleBtn.textContent = 'Edit Peak Tier';
+  toggleBtn.style.marginBottom = '5px';
   toggleBtn.style.padding = '8px 12px';
   toggleBtn.style.cursor = 'pointer';
   toggleBtn.style.borderRadius = '6px';
@@ -526,7 +529,6 @@
   toggleBtn.style.backgroundColor = '#444';
   toggleBtn.style.color = 'white';
   toggleBtn.style.fontSize = '16px';
-
   popup.appendChild(toggleBtn);
 
   // Container for tier buttons
@@ -538,15 +540,14 @@
   tierContainer.style.gap = '10px';
   tierContainer.style.overflowY = 'auto';
   tierContainer.style.height = '180px';
-
   popup.appendChild(tierContainer);
 
   const tiers = ["LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1","RLT2","RHT2","RLT1","RHT1"];
-
-  let editingPeak = false;  // start editing current tier
+  let editingPeak = false;
 
   function renderTierButtons(editPeak) {
     tierContainer.innerHTML = '';
+    modeLabel.textContent = editPeak ? 'Peak Tier' : 'Current Tier';
     tiers.forEach(tier => {
       const btn = document.createElement('button');
       btn.textContent = tier;
@@ -584,8 +585,6 @@
   };
 
   renderTierButtons(editingPeak);
-
-  tierPopupContainer.appendChild(popup);
 
   // Close popup when clicking outside
   function onClickOutside(e) {

@@ -487,7 +487,7 @@
   popup.className = 'tier-popup';
   popup.id = 'big-tier-popup';
 
-  // Style popup (same as before)...
+  // Style popup
   popup.style.position = 'absolute';
   popup.style.backgroundColor = '#222';
   popup.style.border = '2px solid #888';
@@ -498,10 +498,16 @@
   popup.style.maxWidth = '900px';
   popup.style.height = '250px';
 
-  // Position popup centered horizontally and at fixed top position -650px
+  // Get profile's bounding rect and scroll position
+  const profileRect = profile.getBoundingClientRect();
+  const scrollY = window.scrollY || window.pageYOffset;
+
+  // Position popup horizontally centered, and vertically just below the profile (tiers)
   popup.style.left = '50%';
   popup.style.transform = 'translateX(-50%)';
-  popup.style.top = `${profileRect.bottom + scrollY + 10}px`;
+  popup.style.top = `${profileRect.bottom + scrollY + 10}px`;  // 10px below tiers
+
+  // rest of your code for buttons and tiers...
 
   // Toggle button to switch between editing current and peak tier
   const toggleBtn = document.createElement('button');
@@ -557,8 +563,6 @@
         } else {
           await applyTierToPlayer(kit, tier);
           label.textContent = tier;
-
-          // Optionally update peak tier logic if needed here
         }
         popup.remove();
       };

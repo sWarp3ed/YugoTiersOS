@@ -501,7 +501,7 @@
   // Position popup (same as before)...
   const profileRect = profile.getBoundingClientRect();
   const scrollY = window.scrollY || window.pageYOffset;
-  let leftPos = profileRect.left + profileRect.width / 50;
+  let leftPos = profileRect.left + profileRect.width / 100;
   popup.style.left = `${leftPos}px`;
   popup.style.transform = 'translateX(-50%)';
   let topPos = profileRect.bottom + scrollY - 650 ;

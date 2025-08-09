@@ -556,21 +556,7 @@
   setTimeout(() => {
     document.addEventListener('click', outsideClickListener);
   }, 0);
-};
-
-  document.body.appendChild(popup);
-
-  // Also add an event listener to close popup when clicking outside
-  function outsideClickListener(event) {
-    if (!popup.contains(event.target) && event.target !== icon) {
-      popup.remove();
-      document.removeEventListener('click', outsideClickListener);
-    }
-  }
-  setTimeout(() => { // Delay to avoid immediate close on click
-    document.addEventListener('click', outsideClickListener);
-  }, 0);
-
+}
     
 
   const modalOverlay = document.getElementById('modal-overlay');

@@ -261,18 +261,16 @@
 /* Player list container */
 #player-list {
   position: relative;
-  margin-left: 10px;      /* Move it slightly right */
-  height: calc(100% - 20px); /* leave extra space so last player is visible */
+  margin-left: 20px; /* move right from tier boxes */
+  height: 500px; /* make taller so you can scroll fully */
   padding: 8px 8px 30px 8px;
   overflow-y: auto;
   overflow-x: hidden;
-  margin-bottom: 30px;
 
-  background: rgba(0, 0, 0, 0.4); /* Transparent dark background */
+  background: rgba(0, 0, 0, 0.4);
   border-radius: 8px;
   box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
 
-  /* For Firefox */
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
 }
